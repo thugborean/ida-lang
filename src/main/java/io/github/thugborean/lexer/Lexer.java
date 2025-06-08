@@ -19,26 +19,28 @@ public class Lexer {
     }
 
     public static final Map<String, TokenType> keywords = Map.ofEntries(
+            // Literals
+            Map.entry("null", TokenType.NullLiteral), // Takes the worth of a null literal
+            Map.entry("true", TokenType.True),
+            Map.entry("false", TokenType.False),
+
             // Variables
             Map.entry("num", TokenType.Number),
-            Map.entry("string", TokenType.String),
-            Map.entry("bool", TokenType.Bool),
             Map.entry("double", TokenType.Double),
-
-            Map.entry("null", TokenType.NullLiteral),
+            Map.entry("string", TokenType.String),
+            Map.entry("char", TokenType.Character),
+            Map.entry("bool", TokenType.Bool),
 
             // Functions and structures
             Map.entry("func", TokenType.Function),
             Map.entry("void", TokenType.Void),
             Map.entry("struct", TokenType.Structure),
 
-            // Loops and conditionals
+            // Loops and control flow
             Map.entry("if", TokenType.If),
             Map.entry("while", TokenType.While),
             Map.entry("for", TokenType.For),
             Map.entry("do", TokenType.Do),
-            Map.entry("true", TokenType.True),
-            Map.entry("false", TokenType.False),
 
             // Scope
             Map.entry("export", TokenType.Export),
@@ -77,7 +79,7 @@ public class Lexer {
             Map.entry("{", TokenType.OpenCurly),
             Map.entry("}", TokenType.ClosedCurly),
             Map.entry(";", TokenType.SemiColon),
-            Map.entry(".", TokenType.Dot)
+            Map.entry(".", TokenType.Dot) // Used to access members of a struct
             );
 
     public List<Token> tokenize(String source) {

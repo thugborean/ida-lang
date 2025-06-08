@@ -8,6 +8,8 @@ public enum TokenType {
     CharLiteral,
     BoolLiteral,
     NullLiteral,
+    True,
+    False,
 
     // Identifier
     Identifier,
@@ -23,9 +25,10 @@ public enum TokenType {
     DoubleQuote, // "
     SingleQuote, // '
 
-    Export, // Used on struct members to modify their visibility
-    Global, // Used on struct members to modify their visibility
-    Hidden, // Used on struct members to modify their visibility
+    // Used on variables to assign their visibility
+    Export, 
+    Global, 
+    Hidden,
 
     // Two-character operators
     PlusPlus, // ++
@@ -50,7 +53,7 @@ public enum TokenType {
     Void, // Used for returnType in functions
     Structure, // struct
 
-    // Loops and conditionals
+    // Loops and control flow
     If,
     LessThan,
     GreaterThan,
@@ -59,8 +62,6 @@ public enum TokenType {
     While,
     For,
     Do,
-    True,
-    False,
 
     // Scope
     OpenBracket,
