@@ -63,7 +63,6 @@ public class Lexer {
             Map.entry("**", TokenType.AtseriskAsterisk),
             Map.entry("==", TokenType.EqualsEquals),
 
-
             Map.entry("+=", TokenType.Append),
             Map.entry("-=", TokenType.Truncate),
 
@@ -97,18 +96,19 @@ public class Lexer {
         // Loop until index exceeds the source.length()
         while (index < source.length()) {
 
-            // KEYWORD LOGIC -----------------------------------------------------------------------------
+            // KEYWORD LOGIC ------------------------------------------------------------------------------
             if (Character.isAlphabetic(currentChar())) {
                 StringBuilder subString = new StringBuilder();
 
                 do {
-                    subString.append(currentChar());  // Add the current char to the subString if it is alphanumerical
+                    subString.append(currentChar()); // Add the current char to the subString if it is alphanumerical
                     incrementIndex();
                 } while (Character.isLetterOrDigit(currentChar()));
 
                 tokens.add(evaluateKeyword(subString.toString())); // If it's not a keyword, it is an identifier
 
             // LITERAL LOGIC ------------------------------------------------------------------------------
+            // NUMERIC LITERAL
             } else if (Character.isDigit(currentChar())) {
                 StringBuilder subString = new StringBuilder();
 
@@ -121,8 +121,20 @@ public class Lexer {
                         throw new RuntimeException("Lexer Error: No alphabetical characters allowed in a numeric literal!"); // WIP placeholder Exception
                 } while (Character.isDigit(currentChar()));
 
-                tokens.add(evaluateLiteral(subString.toString())); // Returns the literal token WIP!! For now only numerical
-            
+                tokens.add(evaluateNumericLiteral(subString.toString())); // Returns the literal token WIP!! For now only numerical
+            // STRING LITERAL
+            } else if(currentChar() == '\"') {
+                StringBuilder subString = new StringBuilder();
+                do {
+                    subString.append(currentChar());
+                    incrementIndex();
+                } while(currentChar() != '\"');
+
+                // Bad solution, but works for now
+                subString.append(currentChar());
+                incrementIndex();
+
+                tokens.add(evaluateStringLiteral(subString.toString()));
             // OPERATOR LOGIC ------------------------------------------------------------------------------
             } else if (operators.containsKey(Character.toString(currentChar()))) {
                 StringBuilder subString = new StringBuilder();
@@ -144,7 +156,7 @@ public class Lexer {
 
             } else if(currentChar() == '\n') {
                 line++;
-                incrementIndex(1);
+                incrementIndex();
             // If all else fails just throw and error and quit, WIP
             } else throw new RuntimeException("Lexer Error: Unexpected symbol during lexing: " + currentChar()); // WIP placeholder Exception
         }
@@ -159,7 +171,6 @@ public class Lexer {
         if (index < source.length())
             return source.charAt(index);
         else return '\0';
-        
     }
 
     // Increments index by amount
@@ -185,9 +196,12 @@ public class Lexer {
             else return new Token(TokenType.Identifier, null, token, line);
     }
 
-    private Token evaluateLiteral(String literal) {
-        // Evaluate the tokens literal value and return appropriate literal Token
+    private Token evaluateNumericLiteral(String literal) {
         return new Token(TokenType.NumericLiteral, Integer.parseInt(literal), literal, line);
+    }
+
+    private Token evaluateStringLiteral(String literal) {
+        return new Token(TokenType.StringLiteral, literal, literal, line);
     }
 
     private Token evaluateOperator(String operator) {
