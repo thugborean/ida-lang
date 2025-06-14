@@ -8,21 +8,23 @@ import io.github.thugborean.syntax.Token;
 import io.github.thugborean.syntax.TokenType;
 
 public class Lexer {
-    private int index = 0;
-    private int line = 1;
+    private int index;
+    private int line;
     private String source;
 
     private List<Token> tokens;
 
     public Lexer() {
-        tokens = new ArrayList<>();
+        this.tokens = new ArrayList<>();
+        this.index = 0;
+        this.line = 1;
     }
 
     public static final Map<String, TokenType> keywords = Map.ofEntries(
             // Literals
-            Map.entry("null", TokenType.NullLiteral), // Takes the worth of a null literal
-            Map.entry("true", TokenType.True),
-            Map.entry("false", TokenType.False),
+            Map.entry("null", TokenType.NullLiteral), // Evaluates to a null literal
+            Map.entry("true", TokenType.True), // Evaluates to a bool literal
+            Map.entry("false", TokenType.False), // Evaluates to a bool literal
 
             // Variables
             Map.entry("num", TokenType.Number),
@@ -36,13 +38,15 @@ public class Lexer {
             Map.entry("void", TokenType.Void),
             Map.entry("struct", TokenType.Structure),
 
+            Map.entry("print", TokenType.Print),
+
             // Loops and control flow
             Map.entry("if", TokenType.If),
             Map.entry("while", TokenType.While),
             Map.entry("for", TokenType.For),
             Map.entry("do", TokenType.Do),
 
-            // Scope
+            // Visibility
             Map.entry("export", TokenType.Export),
             Map.entry("global", TokenType.Global),
             Map.entry("hidden", TokenType.Hidden)
@@ -57,11 +61,18 @@ public class Lexer {
             Map.entry("/", TokenType.Divide),
             Map.entry("%", TokenType.Modulo),
 
+            Map.entry("<", TokenType.LessThan),
+            Map.entry(">", TokenType.GreaterThan),
+
             // Two-character operators
             Map.entry("++", TokenType.PlusPlus),
             Map.entry("--", TokenType.MinusMinus),
             Map.entry("**", TokenType.AtseriskAsterisk),
+
             Map.entry("==", TokenType.EqualsEquals),
+            Map.entry("!=", TokenType.NotEquals),
+            Map.entry("<=", TokenType.LessThanOrEquals),
+            Map.entry(">=", TokenType.GreaterThanOrEquals),
 
             Map.entry("+=", TokenType.Append),
             Map.entry("-=", TokenType.Truncate),
@@ -199,9 +210,17 @@ public class Lexer {
     private Token evaluateNumericLiteral(String literal) {
         return new Token(TokenType.NumericLiteral, Integer.parseInt(literal), literal, line);
     }
+    // WIP
+    private Token evaluateDoubleLiteral(String literal) {
+        return new Token(TokenType.DoubleLiteral, Double.parseDouble(literal), literal, line);
+    }
 
     private Token evaluateStringLiteral(String literal) {
         return new Token(TokenType.StringLiteral, literal, literal, line);
+    }
+    // WIP
+    private Token evaluateCharLiteral(String literal) {
+        return new Token(TokenType.CharLiteral, literal, literal, line);
     }
 
     private Token evaluateOperator(String operator) {
@@ -218,8 +237,7 @@ public class Lexer {
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         for (Token token : tokens) {
-            stringBuilder.append(token.toString());
-            stringBuilder.append("\n");
+            stringBuilder.append(token.toString() + '\n');
         }
         return stringBuilder.toString();
     }

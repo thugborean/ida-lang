@@ -1,12 +1,8 @@
 package io.github.thugborean.repl;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 import io.github.thugborean.lexer.Lexer;
-import io.github.thugborean.syntax.Token;
-import io.github.thugborean.syntax.TokenType;
 
 public class REPL {
     private static Scanner scanner;

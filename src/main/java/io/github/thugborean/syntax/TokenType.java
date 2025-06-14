@@ -34,7 +34,6 @@ public enum TokenType {
     PlusPlus, // ++
     MinusMinus, // --
     AtseriskAsterisk, // **
-    EqualsEquals, // ==
 
     Append, // +=
     Truncate, // -=
@@ -53,12 +52,16 @@ public enum TokenType {
     Void, // Used for returnType in functions
     Structure, // struct
 
+    Print,
+
     // Loops and control flow
     If,
-    LessThan,
-    GreaterThan,
-    LessThanOrEquals,
-    GreaterThanOrEquals,
+    EqualsEquals, // ==
+    NotEquals, // !=
+    LessThan, // <
+    GreaterThan, // >
+    LessThanOrEquals, // <=
+    GreaterThanOrEquals, // >=
     While,
     For,
     Do,
