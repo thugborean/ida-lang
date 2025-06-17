@@ -31,7 +31,7 @@ public class Lexer {
             Map.entry("double", TokenType.Double),
             Map.entry("string", TokenType.String),
             Map.entry("char", TokenType.Character),
-            Map.entry("bool", TokenType.Bool),
+            Map.entry("bool", TokenType.Boolean),
 
             // Functions and structures
             Map.entry("func", TokenType.Function),
@@ -219,8 +219,8 @@ public class Lexer {
         return new Token(TokenType.StringLiteral, literal, literal, line);
     }
     // WIP
-    private Token evaluateCharLiteral(String literal) {
-        return new Token(TokenType.CharLiteral, literal, literal, line);
+    private Token evaluateCharacterLiteral(String literal) {
+        return new Token(TokenType.CharacterLiteral, literal, literal, line);
     }
 
     private Token evaluateOperator(String operator) {
