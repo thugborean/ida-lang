@@ -23,8 +23,8 @@ public class Lexer {
     public static final Map<String, TokenType> keywords = Map.ofEntries(
             // Literals
             Map.entry("null", TokenType.NullLiteral), // Evaluates to a null literal
-            Map.entry("true", TokenType.True), // Evaluates to a bool literal
-            Map.entry("false", TokenType.False), // Evaluates to a bool literal
+            Map.entry("true", TokenType.True), // Evaluates to a boolean literal
+            Map.entry("false", TokenType.False), // Evaluates to a boolean literal
 
             // Variables
             Map.entry("num", TokenType.Number),
@@ -82,12 +82,12 @@ public class Lexer {
 
             public static final Map<String, TokenType> scopes = Map.ofEntries(
             // Scope
-            Map.entry("[", TokenType.OpenBracket),
-            Map.entry("]", TokenType.ClosedBracket),
-            Map.entry("(", TokenType.OpenParenthesis),
-            Map.entry(")", TokenType.CloseParenthesis),
-            Map.entry("{", TokenType.OpenCurly),
-            Map.entry("}", TokenType.ClosedCurly),
+            Map.entry("[", TokenType.BracketOpen),
+            Map.entry("]", TokenType.BracketClosed),
+            Map.entry("(", TokenType.ParenthesisOpen),
+            Map.entry(")", TokenType.ParenthesisClosed),
+            Map.entry("{", TokenType.CurlyOpen),
+            Map.entry("}", TokenType.CurlyClosed),
             Map.entry(";", TokenType.SemiColon),
             Map.entry(".", TokenType.Dot) // Used to access members of a struct
             );
