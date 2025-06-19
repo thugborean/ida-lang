@@ -1,10 +1,10 @@
 package io.github.thugborean.parser;
 
 import java.util.List;
+import java.util.Set;
 
 import io.github.thugborean.ast.node.NodeAST;
 import io.github.thugborean.ast.node.Program;
-import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.ast.node.statement.NodeStatement;
 import io.github.thugborean.syntax.Token;
 import io.github.thugborean.syntax.TokenType;
@@ -14,16 +14,17 @@ public class Parser {
     private Program program;
     private int index;
 
-
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
         this.program = new Program();
         this.index = 0;
-
     }
 
+    // Types
+    public static final Set<TokenType> nodeTypes = Set.of(TokenType.Number, TokenType.Double, TokenType.String, TokenType.Character, TokenType.Boolean);
+
     public Program createAST() {
-        while(currentToken() != null) {
+        while(peek() != null) {
             parse();
         }
         return this.program;
@@ -36,23 +37,21 @@ public class Parser {
     }
 
     private Token peek() {
-        return peek(1);
+        return peek(0);
     }
 
-    // Returns current token to which index points to
-    private Token currentToken() {
-        if(tokens.get(index) != null) return tokens.get(index);
-        else return null;
-
-    }
 
     private NodeAST parse() {
         return null;
     }
 
-    private NodeExpression parseExpression() {
-        return null;
-    }
+    // private NodeExpression parseExpression() {
+    //     return parseTerm();
+    // }
+
+    // private NodeExpression parseTerm() {
+
+    // }
 
     private NodeStatement parseStatement() {
         if (currentToken().tokenType == TokenType.Number) {
@@ -60,6 +59,4 @@ public class Parser {
         }
         return null;
     }
-
-
 }
