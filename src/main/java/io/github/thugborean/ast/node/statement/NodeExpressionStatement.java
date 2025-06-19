@@ -9,6 +9,4 @@ public class NodeExpressionStatement extends NodeStatement {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'accept'");
     }
-    
-    
 }

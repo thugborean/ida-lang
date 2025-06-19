@@ -5,7 +5,7 @@ import io.github.thugborean.ast.visitor.ASTVisitor;
 import io.github.thugborean.syntax.Token;
 
 public class NodeNumericLiteral extends NodeExpression{
-    private Token token;
+    public Token token; // The value of the literal
 
     public NodeNumericLiteral(Token token) {
         this.token = token;
@@ -16,5 +16,4 @@ public class NodeNumericLiteral extends NodeExpression{
     
         return visitor.visitNodeNumericLiteral(this);
     }
-    
 }
