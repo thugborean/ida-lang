@@ -5,8 +5,8 @@ public enum TokenType {
     NumericLiteral,
     DoubleLiteral,
     StringLiteral,
-    CharLiteral,
-    BoolLiteral,
+    CharacterLiteral,
+    BooleanLiteral,
     NullLiteral,
     True,
     False,
@@ -45,7 +45,7 @@ public enum TokenType {
     Double, // double
     String, // string
     Character, // char
-    Bool, // bool
+    Boolean, // bool
 
     // Functions and structures
     Function, // func
