@@ -10,8 +10,7 @@ public class Program implements NodeAST {
     private List<NodeStatement> nodes;
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
-        // TODO Auto-generated method stub
-        return null;
+        return visitor.visitProgram(this);
     }
 
     public void addNode(NodeStatement node) {

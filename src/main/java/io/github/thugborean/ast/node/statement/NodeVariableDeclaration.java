@@ -6,13 +6,13 @@ import io.github.thugborean.ast.visitor.ASTVisitor;
 import io.github.thugborean.syntax.Token;
 
 public class NodeVariableDeclaration extends NodeStatement {
-    public Token identifier;
     public NodeType type;
+    public Token identifier;
     public NodeExpression initialValue;
 
     public NodeVariableDeclaration(Token identifier, NodeType type, NodeExpression initialValue) {
-        this.identifier = identifier;
         this.type = type;
+        this.identifier = identifier;
         this.initialValue = initialValue;
     }
 

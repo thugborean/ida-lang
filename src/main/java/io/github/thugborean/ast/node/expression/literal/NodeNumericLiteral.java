@@ -13,7 +13,6 @@ public class NodeNumericLiteral extends NodeExpression{
 
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
-    
         return visitor.visitNodeNumericLiteral(this);
     }
 }
