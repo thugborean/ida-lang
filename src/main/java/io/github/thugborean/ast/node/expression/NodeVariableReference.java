@@ -1,7 +1,6 @@
 package io.github.thugborean.ast.node.expression;
 
 import io.github.thugborean.ast.visitor.ASTVisitor;
-import io.github.thugborean.syntax.Token;
 
 public class NodeVariableReference extends NodeExpression{
     public String identifier;
