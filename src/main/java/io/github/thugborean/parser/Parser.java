@@ -6,10 +6,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.management.RuntimeErrorException;
+
 import io.github.thugborean.ast.node.NodeAST;
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeExpression;
+import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
 import io.github.thugborean.ast.node.statement.NodeStatement;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
@@ -60,8 +63,9 @@ public class Parser {
         TokenType.Minus,
         TokenType.Multiply,
         TokenType.Divide,
+        TokenType.Modulo,
 
-        TokenType.AtseriskAsterisk
+        TokenType.AtseriskAsterisk //²
     );
 
     public Program createAST() {
@@ -122,17 +126,17 @@ public class Parser {
 
     private NodeExpression parseExpression(List<Token> expressionTokens) {
         NodeExpression result;
-
         // If it's just a single value, return that value
         if(expressionTokens.size() == 1) {
             return new NodeNumericLiteral(expressionTokens.get(0));
         } else {
+            // RPN
             List<Token> solvingStack = shuntingYard(expressionTokens);
-            
+            // Create AST from RPN
+            result = createNodeExpressionAST(solvingStack);
             
         }
-        
-        return null;
+        return result;
     }
 
     private List<Token> shuntingYard(List<Token> tokens) {
@@ -140,6 +144,7 @@ public class Parser {
         HoldingStack holdingStack = new HoldingStack();
 
         for(Token token : tokens) {
+            // PARENTHESIS LOGIC --------------------------------------------------------
             // If open parenthesis, push it onto the stack
             if(token.tokenType == TokenType.ParenthesisOpen) holdingStack.push(token);
                 else if(token.tokenType == TokenType.ParenthesisClosed) {
@@ -147,19 +152,24 @@ public class Parser {
                     while(holdingStack.peek().tokenType != TokenType.ParenthesisOpen) {
                         output.add(holdingStack.pop());
                         // If we drain and find no open parenthesis, we throw an error
-                        if(holdingStack.peek() == null) throw new RuntimeException("Parser error: No '(' found to match ')'");
+                        if(holdingStack.peek() == null) throw new RuntimeException("Parser Error: No '(' found to match ')'");
                     }
-                    // It should always get to this point if it works and if it doesn't it SHOULD throw an error
+                    // It should always get to this point if it works and if it doesn't it SHOULD throw an error before we get to this point
                     holdingStack.pop(); // Remove the open parenthesis
+            // OPERATOR LOGIC -----------------------------------------------------------
                 // Check if it is an operator
                 } else if(operators.contains(token.tokenType)) { 
                     // While the stack is not empty and the current top operator has a lesser precedence than the token operator
-                    // pop the top operator of the stack and add it to output
+                    // Pop the top operator of the stack and add it to output
                     while(holdingStack.peek() != null && getPrecedence(token) <= getPrecedence(holdingStack.peek())) {
                         output.add(holdingStack.pop());
                     }
+            // IDENTIFIER LOGIC ---------------------------------------------------------
                     holdingStack.push(token);
+                    } else if(token.tokenType == TokenType.Identifier) {
+                        output.add(token);
                     }
+            // NUMERICAL LOGIC ----------------------------------------------------------
                 // If it's a numeric value add it to the ouput
                 else output.add(token);
         }
@@ -171,9 +181,37 @@ public class Parser {
         return output;
     }
 
-    private NodeExpression BuildNodeExpressionAST(List<Token> rpnTokens) {
-        NodeExpression result;
-        return result;
+    private NodeExpression createNodeExpressionAST(List<Token> rpnTokens) {
+        // We must assume that the tokens were parsed correctly into RPN, otherwise we are doomed
+        // We'll use a stack, but I don't want to, but I'm doing it anyway because much smarter people than me told me to
+        Stack<NodeExpression> stack = new Stack<>();
+        for(Token token : rpnTokens) {
+            // If it's an identifier or literal push it onto the stack
+            if(token.tokenType == TokenType.Identifier) stack.push(new NodeVariableReference(token.lexeme));
+                else if (token.tokenType == TokenType.NumericLiteral) stack.push(new NodeNumericLiteral(token)); // This might need to be changed
+            // If it's an operator, pop the relevant amount of operands off the stack, create relevant NodeBinaryExpression and push it onto the stack
+            else if(operators.contains(token.tokenType)) { // This switch is maybe redundant right now but might be needed in the future
+                switch(token.tokenType) {
+                    case TokenType.Plus:
+                    case TokenType.Minus:
+                    case TokenType.Multiply:
+                    case TokenType.Divide:
+                    {
+                        if(stack.size() < 2) {
+                            NodeExpression rightHandSide = stack.pop();
+                            NodeExpression leftHandSide = stack.pop();
+                            stack.push(new NodeBinaryExpression(leftHandSide, rightHandSide, token));
+                            break;
+                        } else throw new RuntimeException("Parser Error: Not enough operands");
+
+                    }
+                    case TokenType.AtseriskAsterisk: // WIP
+                    default: throw new RuntimeException("Parser Error: Unimplmeneted operator " + token.lexeme);
+                }
+            }
+        }
+        if(stack.size() != 1) throw new RuntimeException("Parser Error: Expression did not reduce to a single node. Stack contains: " + stack.size());
+        return stack.pop();
     }
 
     private int getPrecedence(Token token) {
@@ -186,22 +224,15 @@ public class Parser {
             case PlusPlus:
             case MinusMinus:
             case AtseriskAsterisk: return 3;
-            // case ParenthesisOpen: return 1000; Maybe? 
+            // case ParenthesisOpen: return 1000; Maybe? NO!
             default: return 0;
         }
-    }
-
-    private NodeStatement parseStatement() {
-        if (peek().tokenType == TokenType.Number) {
-            
-        }
-        return null;
     }
 }
 
 // Custom datatype, a stack that you can iterate through
 class HoldingStack {
-    public int stackPointer = 0;
+    public int stackPointer = -1;
     public List<Token> holdingCell = new ArrayList<>(); // Ampere - Holding Pattern
 
     public void push(Token token) {
