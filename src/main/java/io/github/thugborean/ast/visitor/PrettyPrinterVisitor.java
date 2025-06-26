@@ -26,31 +26,32 @@ public class PrettyPrinterVisitor implements ASTVisitor {
 
 
     @Override
-    public Object visitNodeNumericLiteral(NodeNumericLiteral node) {
+    public String visitNodeNumericLiteral(NodeNumericLiteral node) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeNumericLiteral'");
     }
 
     @Override
-    public Object visitNodeVariableReference(NodeVariableReference node) {
+    public String visitNodeVariableReference(NodeVariableReference node) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeVariableReference'");
     }
 
     @Override
-    public Object visitNodeVariableDeclaration(NodeVariableDeclaration node) {
+    public String visitNodeVariableDeclaration(NodeVariableDeclaration node) {
         
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeVariableDeclaration'");
     }
 
     @Override
-    public Object visitNodeType(NodeType node) {
+    public String visitNodeType(NodeType node) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeType'");
     }
 
     @Override
-    public Object visitProgram(Program program) {
+    public String visitProgram(Program program) {
+        program.accept(null);
         return "Program start: ";
     }
 
@@ -61,6 +62,6 @@ public class PrettyPrinterVisitor implements ASTVisitor {
     private void add(String str) {
         // Tab for each level
         for(int i = 0; i < level; i++) buffer.append("\t");
-        System.out.println(str);
+        buffer.append(str);
     }
 }
