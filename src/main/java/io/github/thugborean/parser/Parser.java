@@ -6,18 +6,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
-import javax.management.RuntimeErrorException;
-
-import io.github.thugborean.ast.node.NodeAST;
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
-import io.github.thugborean.ast.node.statement.NodeStatement;
+import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.NodeNumber;
 import io.github.thugborean.ast.node.types.NodeType;
+import io.github.thugborean.ast.visitor.PrettyPrinterVisitor;
 import io.github.thugborean.syntax.Token;
 import io.github.thugborean.syntax.TokenType;
 
@@ -28,6 +26,12 @@ public class Parser {
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
+        this.program = new Program();
+        this.index = 0;
+    }
+
+    // Questionable ????
+    public Parser() {
         this.program = new Program();
         this.index = 0;
     }
@@ -53,6 +57,7 @@ public class Parser {
         TokenType.Minus,
         TokenType.Multiply,
         TokenType.Divide,
+        TokenType.Modulo,
 
         TokenType.ParenthesisOpen,
         TokenType.ParenthesisClosed
@@ -69,15 +74,15 @@ public class Parser {
     );
 
     public Program createAST() {
-        while(peek() != null) {
-            // Parse variable declaration
+        while(peek().tokenType != TokenType.EOF) {
+            // VARIABLE DECLARATION LOGIC --------------------------------------------------------------------------------
             if(nodeTypes.containsKey(peek().tokenType)) {
                 // Get variable type then advance
                 NodeType type = nodeTypes.get(peek().tokenType);
                 advance();
 
                 // Get variable identifer Token then advance
-                Token identifier = peek();
+                Token identifier = peek(); // Maybe some checks are needed to see if its valid ???
                 advance();
 
                 // Check if the current token is Assign, if not throw error, variables must be initialized upon declaration
@@ -85,30 +90,48 @@ public class Parser {
                     else throw new RuntimeException("Parser Error: Identifer must be followed by assignment");
 
                 // We have to assume that the next tokens are expression-friendly, otherwise it's over
-                List<Token> expressionTokens = new ArrayList<>();
-                while(true) {
-                    if(expressionTokens.contains(peek())) {
-                        expressionTokens.add(peek());
+                List<Token> expression = new ArrayList<>();
+                while(peek().tokenType != TokenType.SemiColon) {
+                    if(isExpressionToken(peek().tokenType)) {
+                        expression.add(peek());
                         advance();
-                    }
-                    else if (peek().tokenType == TokenType.SemiColon) {
-                        break;
-                    } else throw new RuntimeException("Parser Error: Expected ';' after expression");
+                    } else throw new RuntimeException("Parser Error: Unexpected symbol '" + peek().tokenType + "' in expression");
                 }
-                
-                NodeExpression initialValue = parseExpression(expressionTokens);
+                if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: Expected ';' after expression");
+                NodeExpression initialValue = parseExpression(expression);
                 // We are done! Finally add the variable declaration to the Program AST
                 program.addNode(new NodeVariableDeclaration(identifier, type, initialValue));
-            // Parse print statement
-            } else if (peek().tokenType == TokenType.Print) {
+                advance();
 
-            }
+            // PRINT STATEMENT LOGIC -------------------------------------------------------------------------------------
+            } else if (peek().tokenType == TokenType.Print) {
+                advance();
+                // Check if the current token is an open parenthesis
+                if(peek().tokenType != TokenType.ParenthesisOpen) throw new RuntimeException("Parser Error: Excepted '(' after print statement");
+                advance();
+
+                List<Token> expression = new ArrayList<>();
+                // Load the expression
+                while(isExpressionToken(peek().tokenType)) {
+                    expression.add(peek());
+                    advance();
+                }
+                NodeExpression expr;
+                expr = parseExpression(expression);
+                advance();
+
+                if(peek().tokenType != TokenType.ParenthesisClosed) throw new RuntimeException("Parser Error: Excepted ')' after expression");
+                advance();
+
+                program.addNode(new NodeExpressionStatement(expr));
+                advance();
+            }   
         }
         return this.program;
     }
 
     private Token peek(int amount) {
-        if (tokens.get(index + amount) != null) return tokens.get(index + amount);
+        if (index <= tokens.size()) return tokens.get(index + amount);
         else return null;
     }
 
@@ -116,12 +139,13 @@ public class Parser {
         return peek(0);
     }
 
-    private NodeAST parse() {
-        return null;
-    }
-
     private void advance() {
         index++;
+    }
+
+    private boolean isExpressionToken(TokenType tokenType) {
+        if(expressionTokens.contains(tokenType)) return true;
+            else return false;
     }
 
     private NodeExpression parseExpression(List<Token> expressionTokens) {
@@ -161,11 +185,13 @@ public class Parser {
                 } else if(operators.contains(token.tokenType)) { 
                     // While the stack is not empty and the current top operator has a lesser precedence than the token operator
                     // Pop the top operator of the stack and add it to output
-                    while(holdingStack.peek() != null && getPrecedence(token) <= getPrecedence(holdingStack.peek())) {
+                    while (!holdingStack.holdingCell.isEmpty() &&
+                        getPrecedence(token) <= getPrecedence(holdingStack.peek())) {
                         output.add(holdingStack.pop());
-                    }
-            // IDENTIFIER LOGIC ---------------------------------------------------------
+                        }
+
                     holdingStack.push(token);
+            // IDENTIFIER LOGIC ---------------------------------------------------------
                     } else if(token.tokenType == TokenType.Identifier) {
                         output.add(token);
                     }
@@ -174,45 +200,42 @@ public class Parser {
                 else output.add(token);
         }
         // Add the rest of the operators to the output
-        while(holdingStack.peek() != null) {
-            
-            output.add(holdingStack.pop());
+        while (!holdingStack.holdingCell.isEmpty()) {
+            Token op = holdingStack.pop();
+            if (op.tokenType == TokenType.ParenthesisOpen || op.tokenType == TokenType.ParenthesisClosed) {
+                throw new RuntimeException("Parser Error: Mismatched parentheses");
+                }
+            output.add(op);
         }
+        // DEBUG
+        // for(Token token : output) System.out.println(token.toString());
         return output;
     }
 
     private NodeExpression createNodeExpressionAST(List<Token> rpnTokens) {
-        // We must assume that the tokens were parsed correctly into RPN, otherwise we are doomed
-        // We'll use a stack, but I don't want to, but I'm doing it anyway because much smarter people than me told me to
         Stack<NodeExpression> stack = new Stack<>();
-        for(Token token : rpnTokens) {
-            // If it's an identifier or literal push it onto the stack
-            if(token.tokenType == TokenType.Identifier) stack.push(new NodeVariableReference(token.lexeme));
-                else if (token.tokenType == TokenType.NumericLiteral) stack.push(new NodeNumericLiteral(token)); // This might need to be changed
-            // If it's an operator, pop the relevant amount of operands off the stack, create relevant NodeBinaryExpression and push it onto the stack
-            else if(operators.contains(token.tokenType)) { // This switch is maybe redundant right now but might be needed in the future
-                switch(token.tokenType) {
-                    case TokenType.Plus:
-                    case TokenType.Minus:
-                    case TokenType.Multiply:
-                    case TokenType.Divide:
-                    {
-                        if(stack.size() < 2) {
-                            NodeExpression rightHandSide = stack.pop();
-                            NodeExpression leftHandSide = stack.pop();
-                            stack.push(new NodeBinaryExpression(leftHandSide, rightHandSide, token));
-                            break;
-                        } else throw new RuntimeException("Parser Error: Not enough operands");
-
-                    }
-                    case TokenType.AtseriskAsterisk: // WIP
-                    default: throw new RuntimeException("Parser Error: Unimplmeneted operator " + token.lexeme);
+        for (Token token : rpnTokens) {
+            if (token.tokenType == TokenType.Identifier) {
+                stack.push(new NodeVariableReference(token.lexeme));
+            } else if (token.tokenType == TokenType.NumericLiteral) {
+                stack.push(new NodeNumericLiteral(token));
+            } else if (operators.contains(token.tokenType)) {
+                if (stack.size() < 2) {
+                    throw new RuntimeException("Parser Error: Not enough operands for operator: " + token.lexeme);
                 }
+                NodeExpression right = stack.pop();
+                NodeExpression left = stack.pop();
+                stack.push(new NodeBinaryExpression(left, right, token));
+            } else {
+                throw new RuntimeException("Parser Error: Unrecognized token in RPN expression: " + token.lexeme);
             }
         }
-        if(stack.size() != 1) throw new RuntimeException("Parser Error: Expression did not reduce to a single node. Stack contains: " + stack.size());
+        if (stack.size() != 1) {
+            throw new RuntimeException("Parser Error: Expression did not reduce to a single node. Stack contains: " + stack.size() + " elements!");
+        }
         return stack.pop();
-    }
+}
+
 
     private int getPrecedence(Token token) {
         switch (token.tokenType) {
@@ -221,12 +244,14 @@ public class Parser {
             case Multiply: 
             case Divide:
             case Modulo: return 2;
-            case PlusPlus:
-            case MinusMinus:
             case AtseriskAsterisk: return 3;
             // case ParenthesisOpen: return 1000; Maybe? NO!
             default: return 0;
         }
+    }
+
+    public void loadTokens(List<Token> tokens) {
+        this.tokens = tokens;
     }
 }
 

@@ -106,7 +106,6 @@ public class Lexer {
 
         // Loop until index exceeds the source.length()
         while (index < source.length()) {
-
             // KEYWORD LOGIC ------------------------------------------------------------------------------
             if (Character.isAlphabetic(currentChar())) {
                 StringBuilder subString = new StringBuilder();
