@@ -13,20 +13,8 @@ public class NodeBinaryExpression extends NodeExpression{
         this.rightHandSide = rightHandSide;
         this.operator = operator;
     }
-
     // Maybe needed?
     public NodeBinaryExpression(){}
-
-    // These methods are maybe not needed - WIP
-    public void setLeftHandSide(NodeExpression leftHandSide) {
-        this.leftHandSide = leftHandSide;
-    }
-    public void setRightHandSide(NodeExpression rightHandSide) {
-        this.leftHandSide = rightHandSide;
-    }
-    public void setRightHandSide(Token operator) {
-        this.operator = operator;
-    }
 
     public <T> T accept(ASTVisitor<T> visitor) {
         return visitor.visitNodeBinaryExpression(this);
