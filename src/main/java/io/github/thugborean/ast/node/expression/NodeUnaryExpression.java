@@ -11,7 +11,7 @@ public class NodeUnaryExpression extends NodeExpression{
         this.operator = operator;
         this.expression = expression;
     }
-    
+
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
         return visitor.visitUnaryExpression(this);
