@@ -16,5 +16,4 @@ public class NodeAssignStatement extends NodeStatement{
     public <T> T accept(ASTVisitor<T> visitor) {
         return visitor.visitAssignStatement(this);
     }
-
 }

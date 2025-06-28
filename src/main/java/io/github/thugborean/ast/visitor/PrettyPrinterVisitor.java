@@ -8,6 +8,7 @@ import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.NodeType;
+import io.github.thugborean.ast.node.statement.NodeAssignStatement;
 import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
 import io.github.thugborean.ast.node.statement.NodeStatement;
@@ -15,20 +16,17 @@ import io.github.thugborean.ast.node.statement.NodeStatement;
 public class PrettyPrinterVisitor implements ASTVisitor {
     public int level = 0;
     private Program program;
-    StringBuilder buffer = new StringBuilder();
+    private StringBuilder buffer = new StringBuilder();
 
     public PrettyPrinterVisitor(Program program) {
         this.program = program;
     }
 
     // ??????
-    public PrettyPrinterVisitor() {
-
-    }
+    public PrettyPrinterVisitor() {}
 
     public void walkTree() {
         // Go through all the nodes one by one and add their strings to the buffer
-        if(!program.nodes.isEmpty()) System.out.println("2");
         for(NodeStatement node : program.nodes) {
             buffer.append(node.accept(this));
         }
@@ -37,20 +35,21 @@ public class PrettyPrinterVisitor implements ASTVisitor {
 
     @Override
     public String visitNodeBinaryExpression(NodeBinaryExpression node) {
-        StringBuilder stringBuilder = new StringBuilder();
         // Append what kind of operator
-        stringBuilder.append(node.operator.lexeme);
+        String op = node.operator.lexeme;
         // Append lefthandside
-        stringBuilder.append(node.leftHandSide.accept(this));
+        String lhs = node.leftHandSide.accept(this).toString();
         // Append righthandside
-        stringBuilder.append(node.rightHandSide.accept(this));
-        return stringBuilder.toString();
+        String rhs = node.rightHandSide.accept(this).toString();
+        // stringBuilder.append(node.rightHandSide.accept(this));
+        return String.format("op: %-2s \n lhs: %-10s \n rhs: %-10s \n", op, lhs, rhs);
     }
 
     @Override
     public String visitUnaryExpression(NodeUnaryExpression node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        String op = node.operator.lexeme;
+        String expr = node.expression.accept(this).toString();
+        return String.format("op : %-2s \n expr: %-10s", op, expr);
     }
 
     @Override
@@ -72,21 +71,42 @@ public class PrettyPrinterVisitor implements ASTVisitor {
     @Override
     public String visitNodeVariableDeclaration(NodeVariableDeclaration node) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Variable Declaration:");
+        stringBuilder.append("Variable Declaration: " + "\n");
         // Append its type
-        stringBuilder.append("type: " + node.type.accept(this));
+        stringBuilder.append("\t" + "type: " + node.type.accept(this) + "\n");
         // Append its identifier
-        stringBuilder.append("identifier: " + node.identifier);
+        stringBuilder.append("\t" + "identifier: " + node.identifier.lexeme + "\n");
         // Append its intial value
-        stringBuilder.append("value: " + node.initialValue.accept(this));
+        stringBuilder.append("\t" + "value: \n");
+        stringBuilder.append(node.initialValue.accept(this));
         return stringBuilder.toString();
     }
 
     @Override
     public String visitNodeType(NodeType node) {
+        return node.type;
+    }
+
+    @Override
+    public String visitNodePrintStatement(NodePrintStatement node) {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(node.type);
+        stringBuilder.append("Print Statement: \n");
+        stringBuilder.append("printable: " + node.printable.accept(this));
         return stringBuilder.toString();
+    }
+
+    @Override
+    public String visitExpressionStatement(NodeExpressionStatement node) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Expression: ");
+        stringBuilder.append(node.accept(this));
+        return stringBuilder.toString();
+    }
+
+    @Override
+    public String visitAssignStatement(NodeAssignStatement node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitAssignStatement'");
     }
 
     // Maybe not needed??? Will be removed in the future....
@@ -112,21 +132,5 @@ public class PrettyPrinterVisitor implements ASTVisitor {
 
     public void printSingleStatement(NodeExpression node) {
         System.out.println(node.accept(this));
-    }
-
-    @Override
-    public String visitNodePrintStatement(NodePrintStatement node) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Print Statement: \n");
-        stringBuilder.append("printable: " + node.printable.accept(this));
-        return stringBuilder.toString();
-    }
-
-    @Override
-    public Object visitExpressionStatement(NodeExpressionStatement node) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("Expression: ");
-        stringBuilder.append(node.accept(this));
-        return stringBuilder.toString();
     }
 }

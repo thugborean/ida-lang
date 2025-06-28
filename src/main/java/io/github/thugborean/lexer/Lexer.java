@@ -46,7 +46,7 @@ public class Lexer {
             Map.entry("for", TokenType.For),
             Map.entry("do", TokenType.Do),
 
-            // Visibility
+            // Visibility WIP
             Map.entry("export", TokenType.Export),
             Map.entry("global", TokenType.Global),
             Map.entry("hidden", TokenType.Hidden)

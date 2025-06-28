@@ -5,6 +5,7 @@ import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
+import io.github.thugborean.ast.node.statement.NodeAssignStatement;
 import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
@@ -22,6 +23,7 @@ public interface ASTVisitor<T> {
     T visitNodeVariableDeclaration(NodeVariableDeclaration node);
     T visitExpressionStatement(NodeExpressionStatement node);
     T visitNodePrintStatement(NodePrintStatement node);
+    T visitAssignStatement(NodeAssignStatement node);
 
     //Visit misc
     T visitNodeType(NodeType node);

@@ -15,7 +15,6 @@ import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.NodeNumber;
 import io.github.thugborean.ast.node.types.NodeType;
-import io.github.thugborean.ast.visitor.PrettyPrinterVisitor;
 import io.github.thugborean.syntax.Token;
 import io.github.thugborean.syntax.TokenType;
 
@@ -78,7 +77,7 @@ public class Parser {
             // VARIABLE DECLARATION LOGIC --------------------------------------------------------------------------------
             if(nodeTypes.containsKey(peek().tokenType)) {
                 // Get variable type then advance
-                NodeType type = nodeTypes.get(peek().tokenType);
+                NodeType type = nodeTypes.get(peek().tokenType); // Needs keyword new
                 advance();
 
                 // Get variable identifer Token then advance
@@ -91,7 +90,7 @@ public class Parser {
 
                 // We have to assume that the next tokens are expression-friendly, otherwise it's over
                 List<Token> expression = new ArrayList<>();
-                while(peek().tokenType != TokenType.SemiColon) {
+                while(peek().tokenType != TokenType.SemiColon && peek().tokenType != TokenType.EOF) {
                     if(isExpressionToken(peek().tokenType)) {
                         expression.add(peek());
                         advance();
@@ -100,7 +99,7 @@ public class Parser {
                 if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: Expected ';' after expression");
                 NodeExpression initialValue = parseExpression(expression);
                 // We are done! Finally add the variable declaration to the Program AST
-                program.addNode(new NodeVariableDeclaration(identifier, type, initialValue));
+                program.addNode(new NodeVariableDeclaration(type, identifier, initialValue));
                 advance();
 
             // PRINT STATEMENT LOGIC -------------------------------------------------------------------------------------
@@ -207,8 +206,6 @@ public class Parser {
                 }
             output.add(op);
         }
-        // DEBUG
-        // for(Token token : output) System.out.println(token.toString());
         return output;
     }
 
@@ -234,8 +231,7 @@ public class Parser {
             throw new RuntimeException("Parser Error: Expression did not reduce to a single node. Stack contains: " + stack.size() + " elements!");
         }
         return stack.pop();
-}
-
+    }
 
     private int getPrecedence(Token token) {
         switch (token.tokenType) {
@@ -252,6 +248,10 @@ public class Parser {
 
     public void loadTokens(List<Token> tokens) {
         this.tokens = tokens;
+    }
+
+    private void print(Object x) {
+        System.out.println(x);
     }
 }
 
