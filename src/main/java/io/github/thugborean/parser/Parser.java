@@ -17,7 +17,13 @@ import io.github.thugborean.ast.node.types.NodeNumber;
 import io.github.thugborean.ast.node.types.NodeType;
 import io.github.thugborean.syntax.Token;
 import io.github.thugborean.syntax.TokenType;
-
+/*TODO:
+ * Implement associativity in expression parsing
+ * Fix prettyprinter
+ * implement string declaration
+ * implement new types in lexer and clean it up
+ * Decide on NodeExpressionStatement
+ */
 public class Parser {
     private List<Token> tokens;
     private Program program;
@@ -90,13 +96,7 @@ public class Parser {
 
                 // We have to assume that the next tokens are expression-friendly, otherwise it's over
                 List<Token> expression = new ArrayList<>();
-                while(peek().tokenType != TokenType.SemiColon && peek().tokenType != TokenType.EOF) {
-                    if(isExpressionToken(peek().tokenType)) {
-                        expression.add(peek());
-                        advance();
-                    } else throw new RuntimeException("Parser Error: Unexpected symbol '" + peek().tokenType + "' in expression");
-                }
-                if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: Expected ';' after expression");
+                // This function does all the heavy lifting
                 NodeExpression initialValue = parseExpression(expression);
                 // We are done! Finally add the variable declaration to the Program AST
                 program.addNode(new NodeVariableDeclaration(type, identifier, initialValue));
@@ -149,15 +149,23 @@ public class Parser {
 
     private NodeExpression parseExpression(List<Token> expressionTokens) {
         NodeExpression result;
+        while(peek().tokenType != TokenType.SemiColon && peek().tokenType != TokenType.EOF) {
+                    if(isExpressionToken(peek().tokenType)) {
+                        expressionTokens.add(peek());
+                        advance();
+                    } else throw new RuntimeException("Parser Error: Unexpected symbol '" + peek().tokenType + "' in expression");
+                }
+        if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: Expected ';' after expression");
+        // Check if the expression is empty
+        if(expressionTokens.isEmpty()) throw new RuntimeException("Parser Error: Empty expression");
         // If it's just a single value, return that value
-        if(expressionTokens.size() == 1) {
+        else if(expressionTokens.size() == 1) {
             return new NodeNumericLiteral(expressionTokens.get(0));
         } else {
             // RPN
             List<Token> solvingStack = shuntingYard(expressionTokens);
             // Create AST from RPN
             result = createNodeExpressionAST(solvingStack);
-            
         }
         return result;
     }
