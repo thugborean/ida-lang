@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Scanner;
 
 import io.github.thugborean.ast.node.Program;
-import io.github.thugborean.ast.visitor.ASTVisitor;
 import io.github.thugborean.ast.visitor.PrettyPrinterVisitor;
 import io.github.thugborean.lexer.Lexer;
 import io.github.thugborean.parser.Parser;

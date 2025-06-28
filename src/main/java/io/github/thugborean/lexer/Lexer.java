@@ -107,80 +107,61 @@ public class Lexer {
         // Loop until index exceeds the source.length()
         while (index < source.length()) {
             // KEYWORD LOGIC ------------------------------------------------------------------------------
-            if (Character.isAlphabetic(currentChar())) {
+            if (Character.isAlphabetic(peek())) {
                 StringBuilder subString = new StringBuilder();
-
                 do {
-                    subString.append(currentChar()); // Add the current char to the subString if it is alphanumerical
+                    subString.append(peek()); // Add the current char to the subString if it is alphanumerical
                     incrementIndex();
-                } while (Character.isLetterOrDigit(currentChar()));
-
+                } while (Character.isLetterOrDigit(peek()));
                 tokens.add(evaluateKeyword(subString.toString())); // If it's not a keyword, it is an identifier
-
             // LITERAL LOGIC ------------------------------------------------------------------------------
             // NUMERIC LITERAL
-            } else if (Character.isDigit(currentChar())) {
+            } else if (Character.isDigit(peek())) {
                 StringBuilder subString = new StringBuilder();
-
                 do {
-                    subString.append(currentChar());  // Add the current char to the subString if it is numerical
+                    subString.append(peek());  // Add the current char to the subString if it is numerical
                     incrementIndex();
-
                     // Check if the next character is alphabetical
-                    if(Character.isAlphabetic(peek()))
+                    if(Character.isAlphabetic(peek(1)))
                         throw new RuntimeException("Lexer Error: No alphabetical characters allowed in a numeric literal!"); // WIP placeholder Exception
-                } while (Character.isDigit(currentChar()));
-
+                } while (Character.isDigit(peek()));
                 tokens.add(evaluateNumericLiteral(subString.toString())); // Returns the literal token WIP!! For now only numerical
             // STRING LITERAL
-            } else if(currentChar() == '\"') {
+            } else if(peek() == '\"') {
                 StringBuilder subString = new StringBuilder();
                 do {
-                    subString.append(currentChar());
+                    subString.append(peek());
                     incrementIndex();
-                } while(currentChar() != '\"');
-
+                } while(peek() != '\"');
                 // Bad solution, but works for now
-                subString.append(currentChar());
+                subString.append(peek());
                 incrementIndex();
-
                 tokens.add(evaluateStringLiteral(subString.toString()));
             // OPERATOR LOGIC ------------------------------------------------------------------------------
-            } else if (operators.containsKey(Character.toString(currentChar()))) {
+            } else if (operators.containsKey(Character.toString(peek()))) {
                 StringBuilder subString = new StringBuilder();
-
                 do {
-                    subString.append(currentChar()); 
+                    subString.append(peek()); 
                     incrementIndex();
-                } while (operators.containsKey(Character.toString(currentChar())));
-                
+                } while (operators.containsKey(Character.toString(peek())));
                 tokens.add(evaluateOperator(subString.toString()));
-            
             // SCOPE LOGIC ---------------------------------------------------------------------------------
-            } else if(scopes.containsKey(Character.toString(currentChar()))) {
-                tokens.add(evaluateScope(Character.toString(currentChar())));
+            } else if(scopes.containsKey(Character.toString(peek()))) {
+                tokens.add(evaluateScope(Character.toString(peek())));
                 incrementIndex();
             // WHITESPACE AND NEWLINE LOGIC ----------------------------------------------------------------
-            } else if(currentChar() == ' ') {
+            } else if(peek() == ' ') {
                 incrementIndex();
-
-            } else if(currentChar() == '\n') {
+            } else if(peek() == '\n') {
                 line++;
                 incrementIndex();
             // If all else fails just throw and error and quit, WIP
-            } else throw new RuntimeException("Lexer Error: Unexpected symbol during lexing: " + currentChar()); // WIP placeholder Exception
+            } else throw new RuntimeException("Lexer Error: Unexpected symbol during lexing: " + peek()); // WIP placeholder Exception
         }
 
         // Add EOF token
         tokens.add(new Token(TokenType.EOF, null, null, line));
         return tokens;
-    }
-
-    // Returns the current char for which the index points to
-    private char currentChar() {
-        if (index < source.length())
-            return source.charAt(index);
-        else return '\0';
     }
 
     // Increments index by amount
@@ -197,7 +178,7 @@ public class Lexer {
             else return '\0';
     }
     private char peek() {
-        return peek(1);
+        return peek(0);
     }
 
     private Token evaluateKeyword(String token) {
