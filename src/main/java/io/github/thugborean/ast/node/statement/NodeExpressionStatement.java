@@ -1,5 +1,4 @@
 package io.github.thugborean.ast.node.statement;
-import org.w3c.dom.Node;
 
 import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.ast.visitor.ASTVisitor;

@@ -10,12 +10,11 @@ public class NodeVariableDeclaration extends NodeStatement {
     public Token identifier;
     public NodeExpression initialValue;
 
-    public NodeVariableDeclaration(Token identifier, NodeType type, NodeExpression initialValue) {
+    public NodeVariableDeclaration(NodeType type, Token identifier, NodeExpression initialValue) {
         this.type = type;
         this.identifier = identifier;
         this.initialValue = initialValue;
     }
-
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
         return visitor.visitNodeVariableDeclaration(this);

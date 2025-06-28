@@ -4,8 +4,8 @@ import io.github.thugborean.ast.visitor.ASTVisitor;
 import io.github.thugborean.syntax.Token;
 
 public class NodeUnaryExpression extends NodeExpression{
-    Token operator;
-    NodeExpression expression;
+    public Token operator;
+    public NodeExpression expression;
 
     public NodeUnaryExpression(Token operator, NodeExpression expression) {
         this.operator = operator;
