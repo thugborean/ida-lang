@@ -115,17 +115,25 @@ public class Lexer {
                 } while (Character.isLetterOrDigit(peek()));
                 tokens.add(evaluateKeyword(subString.toString())); // If it's not a keyword, it is an identifier
             // LITERAL LOGIC ------------------------------------------------------------------------------
-            // NUMERIC LITERAL
+            // NUMERIC LITERAL & DOUBLE LITERAL
             } else if (Character.isDigit(peek())) {
                 StringBuilder subString = new StringBuilder();
                 do {
                     subString.append(peek());  // Add the current char to the subString if it is numerical
                     incrementIndex();
                     // Check if the next character is alphabetical
-                    if(Character.isAlphabetic(peek(1)))
-                        throw new RuntimeException("Lexer Error: No alphabetical characters allowed in a numeric literal!"); // WIP placeholder Exception
+                    if(Character.isAlphabetic(peek(1))) throw new RuntimeException("Lexer Error: No alphabetical characters allowed in a numeric literal!"); // WIP placeholder Exception
                 } while (Character.isDigit(peek()));
-                tokens.add(evaluateNumericLiteral(subString.toString())); // Returns the literal token WIP!! For now only numerical
+                // If it's a double we need to keep reading
+                if(peek() == '.') {
+                    do {
+                        subString.append(peek());
+                        incrementIndex();
+                        if(Character.isAlphabetic(peek())) throw new RuntimeException("Lexer Error: No alphabetical characters allowed in a double literal!");
+                    } while (Character.isDigit(peek()));
+                    tokens.add(evaluateDoubleLiteral(subString.toString()));
+                } else tokens.add(evaluateNumericLiteral(subString.toString()));
+                 // Returns the literal token WIP!! For now only numerical
             // STRING LITERAL
             } else if(peek() == '\"') {
                 StringBuilder subString = new StringBuilder();
@@ -137,6 +145,21 @@ public class Lexer {
                 subString.append(peek());
                 incrementIndex();
                 tokens.add(evaluateStringLiteral(subString.toString()));
+            // CHARACTER LITERAL
+            } else if(peek() == '\'') {
+                StringBuilder subString = new StringBuilder();
+                // Get the first '\''
+                subString.append(peek());
+                incrementIndex();
+                // Get the character
+                subString.append(peek());
+                incrementIndex();
+                // Do some checks
+                if(Character.isAlphabetic(peek())) throw new RuntimeException("Lexer Error: Only one character allowed in a char");
+                    else if (peek() != '\'') throw new RuntimeException("Lexer Error: Character literal was not closed properly");
+                subString.append(peek());
+                incrementIndex();
+                tokens.add(evaluateCharacterLiteral(subString.toString()));
             // OPERATOR LOGIC ------------------------------------------------------------------------------
             } else if (operators.containsKey(Character.toString(peek()))) {
                 StringBuilder subString = new StringBuilder();
@@ -190,29 +213,24 @@ public class Lexer {
     private Token evaluateNumericLiteral(String literal) {
         return new Token(TokenType.NumericLiteral, Integer.parseInt(literal), literal, line);
     }
-    // WIP
     private Token evaluateDoubleLiteral(String literal) {
         return new Token(TokenType.DoubleLiteral, Double.parseDouble(literal), literal, line);
     }
-
     private Token evaluateStringLiteral(String literal) {
         return new Token(TokenType.StringLiteral, literal, literal, line);
     }
-    // WIP
     private Token evaluateCharacterLiteral(String literal) {
+        if(literal.length() > 3) throw new RuntimeException("Lexer Error: Only one character allowed in character literal!");
         return new Token(TokenType.CharacterLiteral, literal, literal, line);
     }
-
     private Token evaluateOperator(String operator) {
         if(operators.containsKey(operator)) return new Token(operators.get(operator), null, operator, line);
             else throw new RuntimeException("Unknown Operator!");
     }
-
     private Token evaluateScope(String scope) {
         if(scopes.containsKey(scope)) return new Token(scopes.get(scope), null, scope, line);
             else throw new RuntimeException("Unknown Symbol: " + scope + "!");
     }
-
     // Returns a string of all the lexed tokens
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();

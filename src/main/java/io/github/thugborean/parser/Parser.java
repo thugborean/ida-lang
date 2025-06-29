@@ -21,12 +21,12 @@ import io.github.thugborean.syntax.TokenType;
  * Implement associativity in expression parsing
  * Fix prettyprinter
  * implement string declaration
- * implement new types in lexer and clean it up
+ * implement new types in lexer and clean it up, Double works in lexer for now but not in parser
  * Decide on NodeExpressionStatement
  */
 public class Parser {
-    private List<Token> tokens;
-    private Program program;
+    public List<Token> tokens;
+    public Program program;
     private int index;
 
     public Parser(List<Token> tokens) {
