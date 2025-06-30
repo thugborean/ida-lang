@@ -52,11 +52,11 @@ public class REPL {
                                 Program program = parser.createAST();
                                 visitor = new PrettyPrinterVisitor(program);
                                 visitor.walkTree();
+                                visitor.print();
                                 break;
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-
                         }
                     }
                 }

@@ -27,5 +27,5 @@ public interface ASTVisitor<T> {
 
     //Visit misc
     T visitNodeType(NodeType node);
-    T visitProgram(Program program);
+    // T visitProgram(Program program);
 }

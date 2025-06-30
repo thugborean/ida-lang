@@ -5,8 +5,8 @@ import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.NodeExpression;
 
 public class NodeAssignStatement extends NodeStatement{
-    NodeVariableReference variableReference;
-    NodeExpression assignedValue;
+    public NodeVariableReference variableReference;
+    public NodeExpression assignedValue;
 
     public NodeAssignStatement(NodeVariableReference variableReference, NodeExpression assignedValue) {
         this.variableReference = variableReference;
