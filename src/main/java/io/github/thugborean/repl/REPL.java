@@ -1,5 +1,7 @@
 package io.github.thugborean.repl;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -10,32 +12,66 @@ import io.github.thugborean.parser.Parser;
 import io.github.thugborean.syntax.Token;
 
 public class REPL {
-    private static Scanner scanner;
-    private static Lexer lexer;
-    private static Parser parser;
-    private static PrettyPrinterVisitor visitor;
-    private static Program program;
 
-    public static void run() {
-        scanner = new Scanner(System.in);
-        lexer = new Lexer();
-        parser = new Parser();
-        // List<Token> tokens = new ArrayList<>();
-        while(true) {
-            // Get the input line
-            String input = scanner.nextLine();
-            // Tokenize it
-            List<Token> tokens = lexer.tokenize(input);
-            // System.out.println(lexer.toString());
-            parser.loadTokens(tokens);
-            System.out.println("1");
-            // Parse it and create AST
-            program = parser.createAST();
-            System.out.println("2");
-            visitor = new PrettyPrinterVisitor();
-            visitor.loadProgram(program);
-            // Walk the AST and print it
-            visitor.walkTree();
+    public void run() {
+        try (Scanner scanner = new Scanner(System.in)) {
+            Lexer lexer = new Lexer();
+            Parser parser;
+            PrettyPrinterVisitor visitor;
+            String mode = "parser";
+
+            while(true) {
+                print("REPL Version: 0.1");
+                print("Current Mode: " + mode);
+                String input = scanner.nextLine();
+                switch(input) {
+                    case "::lexer":
+                        mode = "lexer";
+                        break;
+                    case "::parser":
+                        mode = "parser";
+                        break;
+                    case "::exit":
+                        System.exit(0);
+                    case "::help":
+                        print(help());
+                        break;
+                    default: {
+                        if(mode == "lexer") {
+                            try {
+                                List<Token> tokens = new ArrayList<>(lexer.tokenize(input));
+                                for(Token token : tokens) print(token); // Print automatically calls toString()... I think
+                                break;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                break;
+                            }
+                        } else if(mode == "parser") {
+                                try {
+                                parser = new Parser(lexer.tokenize(input));
+                                Program program = parser.createAST();
+                                visitor = new PrettyPrinterVisitor(program);
+                                visitor.walkTree();
+                                break;
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }
+                }
+            }
         }
+    }
+    private static void print(Object x) {
+        System.out.println(x);
+    }
+
+    private String help() {
+        StringBuilder str = new StringBuilder();
+        str.append("::lexer - for lexer mode" + "\n");
+        str.append("::parser - for parser mode" + "\n");
+        str.append("::exit - to exit REPL" + "\n");
+        return str.toString();
     }
 }
