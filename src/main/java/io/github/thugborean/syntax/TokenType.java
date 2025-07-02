@@ -69,12 +69,13 @@ public enum TokenType {
     // Scope
     BracketOpen,
     BracketClosed,
-    ParenthesisOpen,
-    ParenthesisClosed,
+    ParenthesesOpen,
+    ParenthesesClosed,
     CurlyOpen,
     CurlyClosed,
     SemiColon,
     Dot, // .
+    Comma, // ,
 
     // EOF
     EOF,
