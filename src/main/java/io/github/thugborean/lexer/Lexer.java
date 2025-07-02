@@ -84,19 +84,19 @@ public class Lexer {
             // Scope
             Map.entry("[", TokenType.BracketOpen),
             Map.entry("]", TokenType.BracketClosed),
-            Map.entry("(", TokenType.ParenthesisOpen),
-            Map.entry(")", TokenType.ParenthesisClosed),
+            Map.entry("(", TokenType.ParenthesesOpen),
+            Map.entry(")", TokenType.ParenthesesClosed),
             Map.entry("{", TokenType.CurlyOpen),
             Map.entry("}", TokenType.CurlyClosed),
             Map.entry(";", TokenType.SemiColon),
-            Map.entry(".", TokenType.Dot) // Used to access members of a struct
+            Map.entry(".", TokenType.Dot),
+            Map.entry(",", TokenType.Comma)
             );
 
     public List<Token> tokenize(String source) {
         this.tokens.clear();
         this.index = 0;
         this.line = 1;
-
         this.source = source;
         // Replace windows-style newlines with unix-based newlines
         source.replace("\r\n", "\n");

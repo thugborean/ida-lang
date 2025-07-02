@@ -11,7 +11,7 @@ import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
-import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
+import io.github.thugborean.ast.node.statement.NodePrintStatement;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.NodeNumber;
 import io.github.thugborean.ast.node.types.NodeType;
@@ -41,8 +41,8 @@ public class Parser {
         this.index = 0;
     }
 
-    // NodeTypes
-    public static final Map<TokenType, NodeType> nodeTypes = Map.ofEntries(
+    // varibleTypes
+    public static final Map<TokenType, NodeType> varibleTypes = Map.ofEntries(
         Map.entry(TokenType.Number, new NodeNumber())
 
         // WIP, unimplemented types
@@ -64,8 +64,8 @@ public class Parser {
         TokenType.Divide,
         TokenType.Modulo,
 
-        TokenType.ParenthesisOpen,
-        TokenType.ParenthesisClosed
+        TokenType.ParenthesesOpen,
+        TokenType.ParenthesesClosed
     );
 
     public static final Set<TokenType> operators = Set.of(
@@ -79,11 +79,13 @@ public class Parser {
     );
 
     public Program createAST() {
-        while(peek().tokenType != TokenType.EOF) {
+        this.index = 0;
+        this.program = new Program();
+        while(!isAtEnd()) {
             // VARIABLE DECLARATION LOGIC --------------------------------------------------------------------------------
-            if(nodeTypes.containsKey(peek().tokenType)) {
+            if(varibleTypes.containsKey(peek().tokenType)) {
                 // Get variable type then advance
-                NodeType type = nodeTypes.get(peek().tokenType); // Needs keyword new
+                NodeType type = varibleTypes.get(peek().tokenType); // Needs keyword new
                 advance();
 
                 // Get variable identifer Token then advance
@@ -97,35 +99,29 @@ public class Parser {
                 // We have to assume that the next tokens are expression-friendly, otherwise it's over
                 List<Token> expression = new ArrayList<>();
                 // This function does all the heavy lifting
-                NodeExpression initialValue = parseExpression(expression);
+                NodeExpression initialValue = parseExpression(expression, false);
+                if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: ';' expected after expression");
                 // We are done! Finally add the variable declaration to the Program AST
                 program.addNode(new NodeVariableDeclaration(type, identifier, initialValue));
                 advance();
-
             // PRINT STATEMENT LOGIC -------------------------------------------------------------------------------------
             } else if (peek().tokenType == TokenType.Print) {
+                // Advance past the print
                 advance();
-                // Check if the current token is an open parenthesis
-                if(peek().tokenType != TokenType.ParenthesisOpen) throw new RuntimeException("Parser Error: Excepted '(' after print statement");
-                advance();
-
-                List<Token> expression = new ArrayList<>();
-                // Load the expression
-                while(isExpressionToken(peek().tokenType)) {
-                    expression.add(peek());
-                    advance();
-                }
-                NodeExpression expr;
-                expr = parseExpression(expression);
+                // Check if the current token is an open parentheses
+                if(peek().tokenType != TokenType.ParenthesesOpen) throw new RuntimeException("Parser Error: Excepted '(' after print statement");
                 advance();
 
-                if(peek().tokenType != TokenType.ParenthesisClosed) throw new RuntimeException("Parser Error: Excepted ')' after expression");
-                advance();
-
-                program.addNode(new NodeExpressionStatement(expr));
+                List<Token> expressionTokens = new ArrayList<>();
+                // What is to be printed
+                // This SHOULD advance to the SemiColon!!!!!!!!!
+                NodeExpression printable = parseExpression(expressionTokens, true);
+                if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: ';' expected after expression");
+                program.addNode(new NodePrintStatement(printable));
                 advance();
             }   
         }
+        this.tokens.clear();
         return this.program;
     }
 
@@ -142,20 +138,52 @@ public class Parser {
         index++;
     }
 
+    private boolean isAtEnd() {
+        return index >= tokens.size() || peek().tokenType == TokenType.EOF;
+    }
+
     private boolean isExpressionToken(TokenType tokenType) {
         if(expressionTokens.contains(tokenType)) return true;
             else return false;
     }
 
-    private NodeExpression parseExpression(List<Token> expressionTokens) {
+    private NodeExpression parseExpression(List<Token> expressionTokens, boolean insideParentheses) {
         NodeExpression result;
-        while(peek().tokenType != TokenType.SemiColon && peek().tokenType != TokenType.EOF) {
-                    if(isExpressionToken(peek().tokenType)) {
-                        expressionTokens.add(peek());
-                        advance();
-                    } else throw new RuntimeException("Parser Error: Unexpected symbol '" + peek().tokenType + "' in expression");
+        int depth = insideParentheses ? 1 : 0;
+        print("depth: " + depth);
+        while(true) {
+            if(peek().tokenType == TokenType.SemiColon) {
+                break;
+            }
+            // PARENTHESIS LOGIC
+            if (peek().tokenType == TokenType.ParenthesesOpen) {
+                depth++;
+                expressionTokens.add(peek());
+                advance();
+                continue;
+            } else if(peek().tokenType == TokenType.ParenthesesClosed) {
+                // This means that it's the clsoing parentheses
+                if(insideParentheses && depth == 1) {
+                    depth--;
+                    advance();
+                } else {
+                    depth--;
+                    expressionTokens.add(peek());
+                    advance();
+                    continue;
                 }
+            } else 
+            // EVERYTHING ELSE
+            // If the token is an expressionToken add it
+            if(isExpressionToken(peek().tokenType)) {
+                expressionTokens.add(peek());
+                advance();
+                continue;
+            } else throw new RuntimeException("Parser Error: Unexpected symbol '" + peek().tokenType + "' in expression");
+        }
+        // Check if the expression is ended by a ';'
         if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: Expected ';' after expression");
+        if(depth != 0) throw new RuntimeException("Parser Error: ( not closed properly");
         // Check if the expression is empty
         if(expressionTokens.isEmpty()) throw new RuntimeException("Parser Error: Empty expression");
         // If it's just a single value, return that value
@@ -175,18 +203,18 @@ public class Parser {
         HoldingStack holdingStack = new HoldingStack();
 
         for(Token token : tokens) {
-            // PARENTHESIS LOGIC --------------------------------------------------------
-            // If open parenthesis, push it onto the stack
-            if(token.tokenType == TokenType.ParenthesisOpen) holdingStack.push(token);
-                else if(token.tokenType == TokenType.ParenthesisClosed) {
-                    // Logic for parenthesis
-                    while(holdingStack.peek().tokenType != TokenType.ParenthesisOpen) {
+            // parentheses LOGIC --------------------------------------------------------
+            // If open parentheses, push it onto the stack
+            if(token.tokenType == TokenType.ParenthesesOpen) holdingStack.push(token);
+                else if(token.tokenType == TokenType.ParenthesesClosed) {
+                    // Logic for parentheses
+                    while(holdingStack.peek().tokenType != TokenType.ParenthesesOpen) {
                         output.add(holdingStack.pop());
-                        // If we drain and find no open parenthesis, we throw an error
+                        // If we drain and find no open parentheses, we throw an error
                         if(holdingStack.peek() == null) throw new RuntimeException("Parser Error: No '(' found to match ')'");
                     }
                     // It should always get to this point if it works and if it doesn't it SHOULD throw an error before we get to this point
-                    holdingStack.pop(); // Remove the open parenthesis
+                    holdingStack.pop(); // Remove the open parentheses
             // OPERATOR LOGIC -----------------------------------------------------------
                 // Check if it is an operator
                 } else if(operators.contains(token.tokenType)) { 
@@ -209,7 +237,7 @@ public class Parser {
         // Add the rest of the operators to the output
         while (!holdingStack.holdingCell.isEmpty()) {
             Token op = holdingStack.pop();
-            if (op.tokenType == TokenType.ParenthesisOpen || op.tokenType == TokenType.ParenthesisClosed) {
+            if (op.tokenType == TokenType.ParenthesesOpen || op.tokenType == TokenType.ParenthesesClosed) {
                 throw new RuntimeException("Parser Error: Mismatched parentheses");
                 }
             output.add(op);
@@ -249,7 +277,7 @@ public class Parser {
             case Divide:
             case Modulo: return 2;
             case AtseriskAsterisk: return 3;
-            // case ParenthesisOpen: return 1000; Maybe? NO!
+            // case ParenthesesOpen: return 1000; Maybe? NO!
             default: return 0;
         }
     }
@@ -258,7 +286,7 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    private void print(Object x) {
+    public void print(Object x) {
         System.out.println(x);
     }
 }
