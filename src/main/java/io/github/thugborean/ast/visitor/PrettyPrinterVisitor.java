@@ -141,6 +141,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     
     public void print() {
         System.out.println(output.toString());
+        output.setLength(0);
     }
 
     // ?????
