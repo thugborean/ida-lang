@@ -64,6 +64,15 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
 
     @Override
     public Void visitUnaryExpression(NodeUnaryExpression node) {
+        line("op: " + node.operator.lexeme);
+        indentLevel++;
+
+        line("expression: ");
+        indentLevel++;
+        node.expression.accept(this);
+        indentLevel--;
+
+        indentLevel--;
         return null;
     }
 
@@ -129,9 +138,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         indent();
         output.append(s).append("\n");
     }
-    private void add(String s) {
-        output.append(s);
-    }
+    
     public void print() {
         System.out.println(output.toString());
     }

@@ -1,6 +1,5 @@
 package io.github.thugborean.ast.visitor;
 
-import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
