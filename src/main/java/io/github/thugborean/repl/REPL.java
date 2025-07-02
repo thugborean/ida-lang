@@ -1,6 +1,5 @@
 package io.github.thugborean.repl;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -21,9 +20,9 @@ public class REPL {
             String mode = "parser";
 
             while(true) {
-                print("REPL Version: 0.1");
+                print("REPL Version: 0.2");
                 print("Current Mode: " + mode);
-                String input = scanner.nextLine();
+                String input = scanner.nextLine().trim();
                 switch(input) {
                     case "::lexer":
                         mode = "lexer";
@@ -31,13 +30,15 @@ public class REPL {
                     case "::parser":
                         mode = "parser";
                         break;
+                    case "::quit":
+                    case "::stop":
                     case "::exit":
                         System.exit(0);
                     case "::help":
                         print(help());
                         break;
                     default: {
-                        if(mode == "lexer") {
+                        if(mode.equals("lexer")) {
                             try {
                                 List<Token> tokens = new ArrayList<>(lexer.tokenize(input));
                                 for(Token token : tokens) print(token); // Print automatically calls toString()... I think
@@ -46,7 +47,7 @@ public class REPL {
                                 e.printStackTrace();
                                 break;
                             }
-                        } else if(mode == "parser") {
+                        } else if(mode.equals("parser")) {
                                 try {
                                 parser = new Parser(lexer.tokenize(input));
                                 Program program = parser.createAST();
