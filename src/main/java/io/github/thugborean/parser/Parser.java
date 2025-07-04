@@ -19,28 +19,17 @@ import io.github.thugborean.syntax.Token;
 import io.github.thugborean.syntax.TokenType;
 /*TODO:
  * Implement associativity in expression parsing
- * Fix prettyprinter
  * implement string declaration
  * implement new types in lexer and clean it up, Double works in lexer for now but not in parser
- * Decide on NodeExpressionStatement
  */
 public class Parser {
     public List<Token> tokens;
-    public Program program;
-    private int index;
+    public Program program = new Program();
+    private int index = 0;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
-        this.program = new Program();
-        this.index = 0;
     }
-
-    // Questionable ????
-    public Parser() {
-        this.program = new Program();
-        this.index = 0;
-    }
-
     // varibleTypes
     public static final Map<TokenType, NodeType> varibleTypes = Map.ofEntries(
         Map.entry(TokenType.Number, new NodeNumber())

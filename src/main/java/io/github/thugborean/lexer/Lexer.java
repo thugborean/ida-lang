@@ -8,17 +8,12 @@ import io.github.thugborean.syntax.Token;
 import io.github.thugborean.syntax.TokenType;
 
 public class Lexer {
-    private int index;
-    private int line;
+    private int index = 0;
+    private int line = 1;
+    private List<Token> tokens = new ArrayList<>();
+
+    // What is to be lexed
     private String source;
-
-    private List<Token> tokens;
-
-    public Lexer() {
-        this.tokens = new ArrayList<>();
-        this.index = 0;
-        this.line = 1;
-    }
 
     public static final Map<String, TokenType> keywords = Map.ofEntries(
             // Literals
