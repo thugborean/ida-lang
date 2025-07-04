@@ -11,7 +11,6 @@ import io.github.thugborean.parser.Parser;
 import io.github.thugborean.syntax.Token;
 
 public class REPL {
-
     public void run() {
         try (Scanner scanner = new Scanner(System.in)) {
             Lexer lexer = new Lexer();
