@@ -5,6 +5,7 @@ import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
+import io.github.thugborean.ast.node.expression.literal.NodeStringLiteral;
 import io.github.thugborean.ast.node.statement.NodeAssignStatement;
 import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
@@ -34,6 +35,12 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
     public Value visitNodeNumericLiteral(NodeNumericLiteral node) {
         // Get the nodes value and store it in this wrapper
         return new Value(node.getValue());
+    }
+
+    @Override
+    public Value visitStringLiteral(NodeStringLiteral node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitStringLiteral'");
     }
 
     // TODO, implement arithemtic with identifiers also!!!
@@ -110,5 +117,10 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
 
     private void print(Object x) {
         System.out.println(x);
+    }
+
+    // NEVER USED NEVER USED!!!!!!!
+    public Value visitNodeType(NodeType node) {
+        return null;
     }
 }

@@ -5,6 +5,7 @@ import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
+import io.github.thugborean.ast.node.expression.literal.NodeStringLiteral;
 import io.github.thugborean.ast.node.statement.NodeAssignStatement;
 import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
@@ -29,6 +30,12 @@ public class TypeCheckerVisitor implements ASTVisitor<Object>{
     public Object visitNodeNumericLiteral(NodeNumericLiteral node) {
         
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeNumericLiteral'");
+    }
+
+    @Override
+    public Object visitStringLiteral(NodeStringLiteral node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitStringLiteral'");
     }
 
     @Override
@@ -79,5 +86,6 @@ public class TypeCheckerVisitor implements ASTVisitor<Object>{
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeType'");
     }
+
     
 }
