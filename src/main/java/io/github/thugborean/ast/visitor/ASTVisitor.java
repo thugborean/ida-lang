@@ -27,6 +27,6 @@ public interface ASTVisitor<T> {
     T visitAssignStatement(NodeAssignStatement node);
 
     //Visit misc
-    T visitNodeType(NodeType node);
+    // T visitNodeType(NodeType node);
     // T visitProgram(Program program);
 }

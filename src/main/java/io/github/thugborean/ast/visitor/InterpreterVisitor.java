@@ -16,7 +16,7 @@ import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.symbol.Value;
 import io.github.thugborean.vm.symbol.Variable;
 
-public class InterpreterVisitor implements ASTVisitor<Object>{
+public class InterpreterVisitor implements ASTVisitor<Value>{
     private Environment environment;
 
     public InterpreterVisitor(Environment environment) {
@@ -36,6 +36,7 @@ public class InterpreterVisitor implements ASTVisitor<Object>{
         return new Value(node.getValue());
     }
 
+    // TODO, implement arithemtic with identifiers also!!!
     @Override
     public Value visitNodeBinaryExpression(NodeBinaryExpression node) {
         Value left = (Value)node.leftHandSide.accept(this);
@@ -67,37 +68,33 @@ public class InterpreterVisitor implements ASTVisitor<Object>{
     }
 
     @Override
-    public Object visitUnaryExpression(NodeUnaryExpression node) {
+    public Value visitUnaryExpression(NodeUnaryExpression node) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitUnaryExpression'");
     }
 
     @Override
     public Value visitNodeVariableReference(NodeVariableReference node) {
-        // Return the Value of the Variable
-        Variable var = environment.getVariable(node.identifier);
-        // Throw this error if we can't find the variable
-        if (var == null) throw new RuntimeException("Undefined Symbol: " + node.identifier);
-        return var.getvalue();
+        return environment.getVariable(node.identifier).getvalue();
     }
 
     @Override
-    public Object visitNodeVariableDeclaration(NodeVariableDeclaration node) {
+    public Value visitNodeVariableDeclaration(NodeVariableDeclaration node) {
         // Make a new variable with given identifier and evaluated epxression... type.type is not a banger...
-        Variable var = new Variable(node.type.type, new Value(node.initialValue.accept(this)));
+        Variable var = new Variable(node.type.type, (Value)node.initialValue.accept(this));
         environment.defineVariable(node.identifier.lexeme, var);
         // Nothing meaningful
         return null;
     }
 
     @Override
-    public Object visitExpressionStatement(NodeExpressionStatement node) {
+    public Value visitExpressionStatement(NodeExpressionStatement node) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitExpressionStatement'");
     }
 
     @Override
-    public Object visitNodePrintStatement(NodePrintStatement node) {
+    public Value visitNodePrintStatement(NodePrintStatement node) {
         Value printable = (Value)node.printable.accept(this);
         // Print the pritable
         System.out.println(printable);
@@ -106,14 +103,12 @@ public class InterpreterVisitor implements ASTVisitor<Object>{
     }
 
     @Override
-    public Object visitAssignStatement(NodeAssignStatement node) {
+    public Value visitAssignStatement(NodeAssignStatement node) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitAssignStatement'");
     }
 
-    @Override
-    public String visitNodeType(NodeType node) {
-        return node.type;
+    private void print(Object x) {
+        System.out.println(x);
     }
-    
 }

@@ -83,7 +83,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         return null;
     }
 
-    @Override
+    // Not always needed
     public Void visitNodeType(NodeType node) {
         line("type: " + node.type);
         return null;

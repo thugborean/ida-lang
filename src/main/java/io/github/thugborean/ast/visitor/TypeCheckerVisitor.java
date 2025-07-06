@@ -74,7 +74,7 @@ public class TypeCheckerVisitor implements ASTVisitor<Object>{
         throw new UnsupportedOperationException("Unimplemented method 'visitAssignStatement'");
     }
 
-    @Override
+    // Not always needed
     public Object visitNodeType(NodeType node) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeType'");

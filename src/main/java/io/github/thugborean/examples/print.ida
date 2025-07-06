@@ -1,2 +1,4 @@
-num a = 1 + 3 * 3;
-print(a);
+num a = 1;
+num b = 2;
+num c = a + b;
+print(c);
