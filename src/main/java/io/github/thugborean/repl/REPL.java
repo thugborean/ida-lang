@@ -50,8 +50,8 @@ public class REPL {
                                 try {
                                 parser = new Parser(lexer.tokenize(input));
                                 Program program = parser.createAST();
-                                visitor = new PrettyPrinterVisitor(program);
-                                visitor.walkTree();
+                                visitor = new PrettyPrinterVisitor();
+                                visitor.walkTree(program);
                                 visitor.print();
                                 break;
                             } catch (Exception e) {
