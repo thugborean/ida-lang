@@ -15,14 +15,9 @@ import io.github.thugborean.ast.node.statement.NodeStatement;
 
 public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     private int indentLevel = 0;
-    private Program program;
     private StringBuilder output = new StringBuilder();
 
-    public PrettyPrinterVisitor(Program program) {
-        this.program = program;
-    }
-
-    public void walkTree() {
+    public void walkTree(Program program) {
         // Go through all the nodes one by one and add their strings to the buffer
         for(NodeStatement node : program.nodes) {
             node.accept(this);

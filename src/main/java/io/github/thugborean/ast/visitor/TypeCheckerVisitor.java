@@ -1,5 +1,6 @@
 package io.github.thugborean.ast.visitor;
 
+import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
@@ -13,8 +14,15 @@ import io.github.thugborean.vm.Environment;
 
 public class TypeCheckerVisitor implements ASTVisitor<Object>{
     private Environment environment;
+
     public TypeCheckerVisitor(Environment environment) {
-        this. environment = environment;
+        this.environment = environment;
+    }
+
+    @Override
+    public void walkTree(Program program) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override

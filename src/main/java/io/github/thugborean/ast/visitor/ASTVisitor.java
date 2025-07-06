@@ -1,5 +1,6 @@
 package io.github.thugborean.ast.visitor;
 
+import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
@@ -12,6 +13,7 @@ import io.github.thugborean.ast.node.types.NodeType;
 
 public interface ASTVisitor<T> {
 
+    void walkTree(Program program);
     // Visiting NodeExpression
     T visitNodeNumericLiteral(NodeNumericLiteral node);
     T visitNodeBinaryExpression(NodeBinaryExpression node);

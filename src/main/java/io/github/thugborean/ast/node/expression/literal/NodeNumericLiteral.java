@@ -11,6 +11,11 @@ public class NodeNumericLiteral extends NodeExpression{
         this.token = token;
     }
 
+    // I'm not sure...
+    public Integer getValue() {
+        return (Integer)token.literal;
+    }
+
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
         return visitor.visitNodeNumericLiteral(this);
