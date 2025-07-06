@@ -139,7 +139,6 @@ public class Parser {
     private NodeExpression parseExpression(List<Token> expressionTokens, boolean insideParentheses) {
         NodeExpression result;
         int depth = insideParentheses ? 1 : 0;
-        print("depth: " + depth);
         while(true) {
             if(peek().tokenType == TokenType.SemiColon) {
                 break;
@@ -177,7 +176,14 @@ public class Parser {
         if(expressionTokens.isEmpty()) throw new RuntimeException("Parser Error: Empty expression");
         // If it's just a single value, return that value
         else if(expressionTokens.size() == 1) {
-            return new NodeNumericLiteral(expressionTokens.get(0));
+            Token token = expressionTokens.get(0);
+        if (token.tokenType == TokenType.Identifier) {
+            return new NodeVariableReference(token.lexeme);
+        } else if (token.tokenType == TokenType.NumericLiteral) {
+            return new NodeNumericLiteral(token);
+        } else {
+            throw new RuntimeException("Parser Error: Unexpected token type in expression: " + token.tokenType);
+        }
         } else {
             // RPN
             List<Token> solvingStack = shuntingYard(expressionTokens);
