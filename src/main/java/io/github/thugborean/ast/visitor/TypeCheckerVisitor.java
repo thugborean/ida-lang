@@ -4,8 +4,7 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
-import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
-import io.github.thugborean.ast.node.expression.literal.NodeStringLiteral;
+import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.NodeAssignStatement;
 import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
@@ -26,16 +25,23 @@ public class TypeCheckerVisitor implements ASTVisitor<Object>{
         
     }
 
-    @Override
+    // This vistitor may want these methods
     public Object visitNodeNumericLiteral(NodeNumericLiteral node) {
         
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeNumericLiteral'");
+    } 
+    public Object visitNodeDoubleLiteral(NodeDoubleLiteral node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitNodeDoubleLiteral'");
     }
-
-    @Override
     public Object visitStringLiteral(NodeStringLiteral node) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitStringLiteral'");
+    }
+    @Override
+    public Object visitNodeLiteral(NodeLiteral node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitNodeLiteral'");
     }
 
     @Override
@@ -87,5 +93,9 @@ public class TypeCheckerVisitor implements ASTVisitor<Object>{
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeType'");
     }
 
-    
+    @Override
+    public Object visitNodeStringLiteral(NodeStringLiteral node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitNodeStringLiteral'");
+    }
 }

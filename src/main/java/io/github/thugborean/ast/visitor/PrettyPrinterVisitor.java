@@ -5,8 +5,7 @@ import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
-import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
-import io.github.thugborean.ast.node.expression.literal.NodeStringLiteral;
+import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.NodeType;
 import io.github.thugborean.ast.node.statement.NodeAssignStatement;
@@ -69,18 +68,6 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         indentLevel--;
 
         indentLevel--;
-        return null;
-    }
-
-    @Override
-    public Void visitNodeNumericLiteral(NodeNumericLiteral node) {
-        line(node.token.lexeme);
-        return null;
-    }
-
-    @Override
-    public Void visitStringLiteral(NodeStringLiteral node) {
-        line(node.token.lexeme);
         return null;
     }
 
@@ -149,5 +136,29 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     // ?????
     public void printSingleStatement(NodeExpression node) {
         System.out.println(node.accept(this));
+    }
+
+    @Override
+    public Void visitNodeLiteral(NodeLiteral node) {
+        line(node.token.lexeme);
+        return null;
+    }
+
+    @Override
+    public Void visitNodeNumericLiteral(NodeNumericLiteral node) {
+        line(node.token.lexeme);
+        return null;
+    }
+
+    @Override
+    public Void visitNodeDoubleLiteral(NodeDoubleLiteral node) {
+        line(node.token.lexeme);
+        return null;
+    }
+
+    @Override
+    public Void visitNodeStringLiteral(NodeStringLiteral node) {
+        line(node.token.lexeme);
+        return null;
     }
 }

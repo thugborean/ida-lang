@@ -37,7 +37,8 @@ public class Value {
         return value;
     }
 
+    @Override
     public String toString() {
-        return value == null ? "null" : value.toString();
+        return String.valueOf(value);
     }
 }

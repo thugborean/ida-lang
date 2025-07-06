@@ -11,16 +11,16 @@ import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
+import io.github.thugborean.ast.node.expression.literal.NodeStringLiteral;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
-import io.github.thugborean.ast.node.types.NodeNumber;
-import io.github.thugborean.ast.node.types.NodeType;
+import io.github.thugborean.ast.node.types.*;
 import io.github.thugborean.syntax.Token;
 import io.github.thugborean.syntax.TokenType;
 /*TODO:
  * Implement associativity in expression parsing
  * implement string declaration
- * implement new types in lexer and clean it up, Double works in lexer for now but not in parser
+ * Double works in lexer for now but not in parser
  */
 public class Parser {
     public List<Token> tokens;
@@ -32,10 +32,10 @@ public class Parser {
     }
     // varibleTypes
     public static final Map<TokenType, NodeType> varibleTypes = Map.ofEntries(
-        Map.entry(TokenType.Number, new NodeNumber())
+        Map.entry(TokenType.Number, new NodeNumber()),
+        Map.entry(TokenType.Double, new NodeDouble()),
+        Map.entry(TokenType.String, new NodeString())
 
-        // WIP, unimplemented types
-        // Map.entry(null, null),
         // Map.entry(null, null),
         // Map.entry(null, null),
         // Map.entry(null, null)
@@ -73,6 +73,7 @@ public class Parser {
         while(!isAtEnd()) {
             // VARIABLE DECLARATION LOGIC --------------------------------------------------------------------------------
             if(varibleTypes.containsKey(peek().tokenType)) {
+                
                 // Get variable type then advance
                 NodeType type = varibleTypes.get(peek().tokenType); // Needs keyword new
                 advance();
@@ -85,10 +86,25 @@ public class Parser {
                 if(peek().tokenType == TokenType.Assign) advance(); 
                     else throw new RuntimeException("Parser Error: Identifer must be followed by assignment");
 
-                // We have to assume that the next tokens are expression-friendly, otherwise it's over
-                List<Token> expression = new ArrayList<>();
-                // This function does all the heavy lifting
-                NodeExpression initialValue = parseExpression(expression, false);
+                // THIS IS THE POINT AFTER =
+                NodeExpression initialValue;
+                // LOGIC FOR NUMBER
+                if(type.type == "num") {
+                    // We have to assume that the next tokens are expression-friendly, otherwise it's over
+                    List<Token> expression = new ArrayList<>();
+                    // This function does all the heavy lifting
+                    initialValue = parseExpression(expression, false);
+                // LOGIC FOR DOUBLE
+                } else if (type.type == "double") {
+                    // We have to assume that the next tokens are expression-friendly, otherwise it's over
+                    List<Token> expression = new ArrayList<>();
+                    // This function does all the heavy lifting
+                    initialValue = parseExpression(expression, false);
+                // LOGIC FOR STRING
+                } else if (type.type == "string") {
+                    initialValue = parseStringExpression(false);
+                } else throw new RuntimeException("Parser Error: Unrecognized type!");
+
                 if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: ';' expected after expression");
                 // We are done! Finally add the variable declaration to the Program AST
                 program.addNode(new NodeVariableDeclaration(type, identifier, initialValue));
@@ -101,10 +117,17 @@ public class Parser {
                 if(peek().tokenType != TokenType.ParenthesesOpen) throw new RuntimeException("Parser Error: Excepted '(' after print statement");
                 advance();
 
-                List<Token> expressionTokens = new ArrayList<>();
-                // What is to be printed
-                // This SHOULD advance to the SemiColon!!!!!!!!!
-                NodeExpression printable = parseExpression(expressionTokens, true);
+                NodeExpression printable;
+                if(peek().tokenType == TokenType.StringLiteral) {
+                    printable = parseStringExpression(true);
+                } else {
+                    List<Token> expressionTokens = new ArrayList<>();
+                    // What is to be printed
+                    // This SHOULD advance to the SemiColon!!!!!!!!!
+                    printable = parseExpression(expressionTokens, true);
+                }
+
+
                 if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: ';' expected after expression");
                 program.addNode(new NodePrintStatement(printable));
                 advance();
@@ -136,6 +159,13 @@ public class Parser {
             else return false;
     }
 
+    // For now only single strings!!!!!!
+    private NodeExpression parseStringExpression(boolean insideParentheses) {
+        NodeExpression result = new NodeStringLiteral(peek());
+        advance(); // Advance past the string literal
+        if(insideParentheses) advance();
+        return result;
+    }
     private NodeExpression parseExpression(List<Token> expressionTokens, boolean insideParentheses) {
         NodeExpression result;
         int depth = insideParentheses ? 1 : 0;
@@ -167,7 +197,8 @@ public class Parser {
                 expressionTokens.add(peek());
                 advance();
                 continue;
-            } else throw new RuntimeException("Parser Error: Unexpected symbol '" + peek().tokenType + "' in expression");
+            } if(isAtEnd()) throw new RuntimeException("Parser Error: Expression not closed properly!");
+                else throw new RuntimeException("Parser Error: Unexpected symbol '" + peek().tokenType + "' in expression");
         }
         // Check if the expression is ended by a ';'
         if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: Expected ';' after expression");

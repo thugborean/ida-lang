@@ -4,8 +4,7 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
-import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
-import io.github.thugborean.ast.node.expression.literal.NodeStringLiteral;
+import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.NodeAssignStatement;
 import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
@@ -32,42 +31,24 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
     }
 
     @Override
-    public Value visitNodeNumericLiteral(NodeNumericLiteral node) {
-        // Get the nodes value and store it in this wrapper
-        return new Value(node.getValue());
-    }
-
-    @Override
-    public Value visitStringLiteral(NodeStringLiteral node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitStringLiteral'");
-    }
-
-    // TODO, implement arithemtic with identifiers also!!!
-    @Override
     public Value visitNodeBinaryExpression(NodeBinaryExpression node) {
         Value left = (Value)node.leftHandSide.accept(this);
         Value right = (Value)node.rightHandSide.accept(this);
         // Determine the operator
         switch(node.operator.tokenType) {
             case TokenType.Plus: {
-                // This may be faulty?
                 return new Value(left.asNumber() + right.asNumber());
             }
             case TokenType.Minus: {
-                // This may be faulty?
                 return new Value(left.asNumber() - right.asNumber());
             }
             case TokenType.Multiply: {
-                // This may be faulty?
                 return new Value(left.asNumber() * right.asNumber());
             }
             case TokenType.Divide: {
-                // This may be faulty?
                 return new Value(left.asNumber() / right.asNumber());
             }
             case TokenType.Modulo: {
-                // This may be faulty?
                 return new Value(left.asNumber() % right.asNumber());
             }
             default: throw new RuntimeException("Interpreter Error: Couldn't find operator for expression!");
@@ -122,5 +103,26 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
     // NEVER USED NEVER USED!!!!!!!
     public Value visitNodeType(NodeType node) {
         return null;
+    }
+
+    @Override
+    // For all the literal types
+    public Value visitNodeLiteral(NodeLiteral node) {
+        return new Value(node.getValue());
+    }
+
+    @Override
+    public Value visitNodeNumericLiteral(NodeNumericLiteral node) {
+        return new Value(node.getValue());
+    }
+
+    @Override
+    public Value visitNodeDoubleLiteral(NodeDoubleLiteral node) {
+        return new Value(node.getValue());
+    }
+
+    @Override
+    public Value visitNodeStringLiteral(NodeStringLiteral node) {
+        return new Value(node.getValue());
     }
 }
