@@ -197,8 +197,7 @@ public class Parser {
                 expressionTokens.add(peek());
                 advance();
                 continue;
-            } if(isAtEnd()) throw new RuntimeException("Parser Error: Expression not closed properly!");
-                else throw new RuntimeException("Parser Error: Unexpected symbol '" + peek().tokenType + "' in expression");
+            } else throw new RuntimeException("Parser Error: Unexpected symbol '" + peek().tokenType + "' in expression");
         }
         // Check if the expression is ended by a ';'
         if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: Expected ';' after expression");
@@ -250,7 +249,6 @@ public class Parser {
                         getPrecedence(token) <= getPrecedence(holdingStack.peek())) {
                         output.add(holdingStack.pop());
                         }
-
                     holdingStack.push(token);
             // IDENTIFIER LOGIC ---------------------------------------------------------
                     } else if(token.tokenType == TokenType.Identifier) {
