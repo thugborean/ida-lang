@@ -1,7 +1,7 @@
 package io.github.thugborean.vm.symbol;
 
 public class Value {
-    private Object value;
+    public Object value;
 
     public Value(Object value) {
         if(value instanceof Value) throw new RuntimeException("Cannot wrap a Value inside a Value!");

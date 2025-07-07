@@ -1,2 +1,2 @@
-num a = 1;
+double a = 1.0 + 3.0;
 print(a);

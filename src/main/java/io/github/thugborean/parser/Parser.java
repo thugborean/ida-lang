@@ -10,6 +10,7 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
+import io.github.thugborean.ast.node.expression.literal.NodeDoubleLiteral;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
 import io.github.thugborean.ast.node.expression.literal.NodeStringLiteral;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
@@ -211,9 +212,9 @@ public class Parser {
             return new NodeVariableReference(token.lexeme);
         } else if (token.tokenType == TokenType.NumericLiteral) {
             return new NodeNumericLiteral(token);
-        } else {
-            throw new RuntimeException("Parser Error: Unexpected token type in expression: " + token.tokenType);
-        }
+        } else if (token.tokenType == TokenType.DoubleLiteral) {
+            return new NodeDoubleLiteral(token);
+        } else throw new RuntimeException("Parser Error: Unexpected token type in expression: " + token.tokenType);
         } else {
             // RPN
             List<Token> solvingStack = shuntingYard(expressionTokens);
@@ -276,6 +277,8 @@ public class Parser {
                 stack.push(new NodeVariableReference(token.lexeme));
             } else if (token.tokenType == TokenType.NumericLiteral) {
                 stack.push(new NodeNumericLiteral(token));
+            } else if(token.tokenType == TokenType.DoubleLiteral) {
+                stack.push(new NodeDoubleLiteral(token));
             } else if (operators.contains(token.tokenType)) {
                 if (stack.size() < 2) {
                     throw new RuntimeException("Parser Error: Not enough operands for operator: " + token.lexeme);
