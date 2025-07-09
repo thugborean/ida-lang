@@ -1,5 +1,6 @@
 package io.github.thugborean.ast.node.expression.literal;
 
+import io.github.thugborean.ast.visitor.ASTVisitor;
 import io.github.thugborean.syntax.Token;
 
 public class NodeDoubleLiteral extends NodeLiteral{
@@ -11,5 +12,9 @@ public class NodeDoubleLiteral extends NodeLiteral{
     @Override
     public Double getValue() {
         return (Double) this.value;
+    }
+    
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visitNodeDoubleLiteral(this);
     }
 }

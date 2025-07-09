@@ -16,10 +16,11 @@ public interface ASTVisitor<T> {
     void walkTree(Program program);
     // Visiting NodeExpression
     // For all the literals
-    T visitNodeLiteral(NodeLiteral node);
+    // T visitNodeLiteral(NodeLiteral node);
     T visitNodeNumericLiteral(NodeNumericLiteral node);
     T visitNodeDoubleLiteral(NodeDoubleLiteral node);
     T visitNodeStringLiteral(NodeStringLiteral node);
+    // Arithmetic Expressions
     T visitNodeBinaryExpression(NodeBinaryExpression node);
     T visitUnaryExpression(NodeUnaryExpression node);
     T visitNodeVariableReference(NodeVariableReference node);
@@ -31,6 +32,5 @@ public interface ASTVisitor<T> {
     T visitAssignStatement(NodeAssignStatement node);
 
     //Visit misc
-    T visitNodeType(NodeType node);
-    // T visitProgram(Program program);
+    T visitNodeType(NodeType node); // Currently accesing type directly and not in the visitor pattern, this might change though
 }

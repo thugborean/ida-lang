@@ -1,5 +1,6 @@
 package io.github.thugborean.ast.node.expression.literal;
 
+import io.github.thugborean.ast.visitor.ASTVisitor;
 import io.github.thugborean.syntax.Token;
 
 public class NodeStringLiteral extends NodeLiteral{
@@ -12,5 +13,9 @@ public class NodeStringLiteral extends NodeLiteral{
     public String getValue() {
         String str = (String)value;
         return str.substring(1, str.length() - 1);
+    }
+
+    public <T> T accept(ASTVisitor<T> visitor) {
+        return visitor.visitNodeStringLiteral(this);
     }
 }

@@ -108,11 +108,11 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
         return null;
     }
 
-    @Override
+    // @Override
     // For all the literal types
-    public Value visitNodeLiteral(NodeLiteral node) {
-        return new Value(node.getValue());
-    }
+    // public Value visitNodeLiteral(NodeLiteral node) {
+    //     return new Value(node.getValue());
+    // }
 
     @Override
     public Value visitNodeNumericLiteral(NodeNumericLiteral node) {

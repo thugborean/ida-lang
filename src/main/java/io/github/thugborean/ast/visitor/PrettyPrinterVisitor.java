@@ -138,11 +138,11 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         System.out.println(node.accept(this));
     }
 
-    @Override
-    public Void visitNodeLiteral(NodeLiteral node) {
-        line(node.token.lexeme);
-        return null;
-    }
+    // @Override
+    // public Void visitNodeLiteral(NodeLiteral node) {
+    //     line(node.token.lexeme);
+    //     return null;
+    // }
 
     @Override
     public Void visitNodeNumericLiteral(NodeNumericLiteral node) {

@@ -1,2 +1,2 @@
-double a = 1.0 + 3.0;
+string a = "3";
 print(a);
