@@ -41,4 +41,19 @@ public class Value {
     public String toString() {
         return String.valueOf(value);
     }
+
+    // This might not be elegant but it'll do
+    public ValType getType() {
+        if(value instanceof Integer) {
+            return ValType.NUMBER;
+        } else if(value instanceof Double) {
+            return ValType.DOUBLE;
+        } else if(value instanceof String) {
+            return ValType.STRING;
+        } else if(value instanceof Character) {
+            return ValType.CHARACTER;
+        } else if(value instanceof Boolean) {
+            return ValType.BOOL;
+        } else return ValType.NULL;
+    }
 }

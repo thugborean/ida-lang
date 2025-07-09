@@ -1,7 +1,9 @@
 package io.github.thugborean.ast.node.types;
 
+import io.github.thugborean.vm.symbol.ValType;
+
 public class NodeNumber extends NodeType{
     public NodeNumber() {
-        this.type = "num";
+        this.type = ValType.NUMBER;
     }
 }

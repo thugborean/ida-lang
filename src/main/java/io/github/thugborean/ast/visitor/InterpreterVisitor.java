@@ -15,6 +15,7 @@ import io.github.thugborean.syntax.TokenType;
 import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.symbol.Value;
 import io.github.thugborean.vm.symbol.Variable;
+import io.github.thugborean.vm.symbol.ValType;
 
 public class InterpreterVisitor implements ASTVisitor<Value>{
     private Environment environment;
@@ -35,9 +36,11 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
         Value left = (Value)node.leftHandSide.accept(this);
         Value right = (Value)node.rightHandSide.accept(this);
         // Determine the operator
+        // Number and Double are the only types allowed in this expression
         switch(node.operator.tokenType) {
             case TokenType.Plus: {
-                return new Value(left.asNumber() + right.asNumber());
+                return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) +
+                (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
             case TokenType.Minus: {
                 return new Value(left.asNumber() - right.asNumber());
@@ -96,9 +99,9 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
         throw new UnsupportedOperationException("Unimplemented method 'visitAssignStatement'");
     }
 
-    private void print(Object x) {
-        System.out.println(x);
-    }
+    // private void print(Object x) {
+    //     System.out.println(x);
+    // }
 
     // NEVER USED NEVER USED!!!!!!!
     public Value visitNodeType(NodeType node) {

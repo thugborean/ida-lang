@@ -18,6 +18,7 @@ import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.*;
 import io.github.thugborean.syntax.Token;
 import io.github.thugborean.syntax.TokenType;
+import io.github.thugborean.vm.symbol.ValType;
 /*TODO:
  * Implement associativity in expression parsing
  * implement string declaration
@@ -90,19 +91,20 @@ public class Parser {
                 // THIS IS THE POINT AFTER =
                 NodeExpression initialValue;
                 // LOGIC FOR NUMBER
-                if(type.type == "num") {
+                if(type.type == ValType.NUMBER) {
                     // We have to assume that the next tokens are expression-friendly, otherwise it's over
                     List<Token> expression = new ArrayList<>();
                     // This function does all the heavy lifting
+                    
                     initialValue = parseExpression(expression, false);
                 // LOGIC FOR DOUBLE
-                } else if (type.type == "double") {
+                } else if (type.type == ValType.DOUBLE) {
                     // We have to assume that the next tokens are expression-friendly, otherwise it's over
                     List<Token> expression = new ArrayList<>();
                     // This function does all the heavy lifting
                     initialValue = parseExpression(expression, false);
                 // LOGIC FOR STRING
-                } else if (type.type == "string") {
+                } else if (type.type == ValType.STRING) {
                     initialValue = parseStringExpression(false);
                 } else throw new RuntimeException("Parser Error: Unrecognized type!");
 
@@ -127,15 +129,13 @@ public class Parser {
                     // This SHOULD advance to the SemiColon!!!!!!!!!
                     printable = parseExpression(expressionTokens, true);
                 }
-
-
                 if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: ';' expected after expression");
                 program.addNode(new NodePrintStatement(printable));
                 advance();
             }   
         }
-        this.tokens.clear();
-        return this.program;
+        tokens.clear();
+        return program;
     }
 
     private Token peek(int amount) {
@@ -208,13 +208,13 @@ public class Parser {
         // If it's just a single value, return that value
         else if(expressionTokens.size() == 1) {
             Token token = expressionTokens.get(0);
-        if (token.tokenType == TokenType.Identifier) {
-            return new NodeVariableReference(token.lexeme);
-        } else if (token.tokenType == TokenType.NumericLiteral) {
-            return new NodeNumericLiteral(token);
-        } else if (token.tokenType == TokenType.DoubleLiteral) {
-            return new NodeDoubleLiteral(token);
-        } else throw new RuntimeException("Parser Error: Unexpected token type in expression: " + token.tokenType);
+            if (token.tokenType == TokenType.Identifier) {
+                return new NodeVariableReference(token.lexeme);
+            } else if (token.tokenType == TokenType.NumericLiteral) {
+                return new NodeNumericLiteral(token);
+            } else if (token.tokenType == TokenType.DoubleLiteral) {
+                return new NodeDoubleLiteral(token);
+            } else throw new RuntimeException("Parser Error: Unexpected token type in expression: " + token.tokenType);
         } else {
             // RPN
             List<Token> solvingStack = shuntingYard(expressionTokens);
