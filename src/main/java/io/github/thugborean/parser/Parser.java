@@ -13,6 +13,7 @@ import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.NodeDoubleLiteral;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
 import io.github.thugborean.ast.node.expression.literal.NodeStringLiteral;
+import io.github.thugborean.ast.node.statement.NodeAssignStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.*;
@@ -108,9 +109,11 @@ public class Parser {
                     initialValue = parseStringExpression(false);
                 } else throw new RuntimeException("Parser Error: Unrecognized type!");
 
+                // Create the initial assignment value
+                NodeAssignStatement assignment = new NodeAssignStatement(identifier.lexeme, initialValue);
                 if(peek().tokenType != TokenType.SemiColon) throw new RuntimeException("Parser Error: ';' expected after expression");
                 // We are done! Finally add the variable declaration to the Program AST
-                program.addNode(new NodeVariableDeclaration(type, identifier, initialValue));
+                program.addNode(new NodeVariableDeclaration(type, identifier, assignment));
                 advance();
             // PRINT STATEMENT LOGIC -------------------------------------------------------------------------------------
             } else if (peek().tokenType == TokenType.Print) {

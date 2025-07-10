@@ -15,13 +15,24 @@ public class Environment {
     // Method used for retrieving the variable from the environment
     public Variable getVariable(String identifier) {
         Variable var = variables.get(identifier);
-        if (var == null) throw new RuntimeException("Unknown Symbol: " + identifier);
+        if(var == null) throw new RuntimeException("Unknown Symbol: " + identifier);
         return var;
     }
 
     public void defineVariable(String identifier, Variable variable) {
-        if (variables.containsKey(identifier)) throw new RuntimeException("Duplicate identifiers!");
+        if(variables.containsKey(identifier)) throw new RuntimeException("Duplicate identifiers!");
         variables.put(identifier, variable);
+    }
+
+    public void assignVariable(String identifier, Variable variable) {
+        if(variables.containsKey(identifier)) variables.put(identifier, variable);
+            else throw new RuntimeException("Cannot assign to unknown Symbol: " + identifier + "the value of: " + variable.getvalue());
+    }
+
+    // ???
+    public boolean variableExists(String identifier) {
+        if(variables.containsKey(identifier)) return true;
+            else return false;
     }
 }
 

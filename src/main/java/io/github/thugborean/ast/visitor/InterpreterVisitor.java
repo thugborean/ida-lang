@@ -43,16 +43,20 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
                 (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
             case TokenType.Minus: {
-                return new Value(left.asNumber() - right.asNumber());
+                return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) -
+                (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
             case TokenType.Multiply: {
-                return new Value(left.asNumber() * right.asNumber());
+                return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) *
+                (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
             case TokenType.Divide: {
-                return new Value(left.asNumber() / right.asNumber());
+                return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) /
+                (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
             case TokenType.Modulo: {
-                return new Value(left.asNumber() % right.asNumber());
+                return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) %
+                (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
             default: throw new RuntimeException("Interpreter Error: Couldn't find operator for expression!");
         }
@@ -71,9 +75,10 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
 
     @Override
     public Value visitNodeVariableDeclaration(NodeVariableDeclaration node) {
-        // Make a new variable with given identifier and evaluated epxression... type.type is not a banger...
-        Variable var = new Variable(node.type.type, (Value)node.initialValue.accept(this));
-        environment.defineVariable(node.identifier.lexeme, var);
+        // Adding the variable to the table with null as a default first before assigning it
+        environment.defineVariable(node.identifier.lexeme, new Variable(node.type.type, null));
+        // Assign the variable with the given intializer
+        node.initializer.accept(this);
         // Nothing meaningful
         return null;
     }
@@ -94,9 +99,11 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
     }
 
     @Override
-    public Value visitAssignStatement(NodeAssignStatement node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitAssignStatement'");
+    public Value visitAssignStatement(NodeAssignStatement node, ValType type) {
+        // This defines the new variable and gets its type and value
+        Variable var = new Variable(environment.getVariable(node.identifier).getType(), node.assignedValue.accept(this));
+        environment.assignVariable(node.identifier, var);
+        return null;
     }
 
     // private void print(Object x) {
@@ -107,12 +114,6 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
     public Value visitNodeType(NodeType node) {
         return null;
     }
-
-    // @Override
-    // For all the literal types
-    // public Value visitNodeLiteral(NodeLiteral node) {
-    //     return new Value(node.getValue());
-    // }
 
     @Override
     public Value visitNodeNumericLiteral(NodeNumericLiteral node) {

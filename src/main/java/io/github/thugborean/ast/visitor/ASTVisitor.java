@@ -10,6 +10,7 @@ import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.NodeType;
+import io.github.thugborean.vm.symbol.ValType;
 
 public interface ASTVisitor<T> {
 
@@ -29,7 +30,7 @@ public interface ASTVisitor<T> {
     T visitNodeVariableDeclaration(NodeVariableDeclaration node);
     T visitExpressionStatement(NodeExpressionStatement node);
     T visitNodePrintStatement(NodePrintStatement node);
-    T visitAssignStatement(NodeAssignStatement node);
+    T visitAssignStatement(NodeAssignStatement node, ValType type);
 
     //Visit misc
     T visitNodeType(NodeType node); // Currently accesing type directly and not in the visitor pattern, this might change though

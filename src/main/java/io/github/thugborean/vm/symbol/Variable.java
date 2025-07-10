@@ -15,6 +15,8 @@ public class Variable {
     }
 
     public Value getvalue() {
-        return value;
+        if(value != null)
+            return value;
+        else return null;
     }
 }

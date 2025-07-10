@@ -8,6 +8,7 @@ import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.NodeType;
+import io.github.thugborean.vm.symbol.ValType;
 import io.github.thugborean.ast.node.statement.NodeAssignStatement;
 import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
@@ -33,7 +34,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         line("identifier: " + node.identifier.lexeme);
         line("value: ");
         indentLevel++;
-        node.initialValue.accept(this);
+        node.initializer.accept(this);
         indentLevel-=2;
         return null;
     }
@@ -101,18 +102,18 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     }
 
     @Override
-    public Void visitAssignStatement(NodeAssignStatement node) {
+    public Void visitAssignStatement(NodeAssignStatement node, ValType type) {
         line("Assign Statement: ");
         indentLevel++;
 
         line("reference: ");
         indentLevel++;
-        node.variableReference.accept(this);
+        line(node.identifier);
         indentLevel--;
 
         line("assigned: ");
         indentLevel++;
-        node.assignedValue.accept(this);
+        line(node.assignedValue.toString());
         indentLevel--;
 
         indentLevel--;

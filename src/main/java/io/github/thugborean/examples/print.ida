@@ -1,2 +1,2 @@
-string a = "3";
+double a = 2;
 print(a);

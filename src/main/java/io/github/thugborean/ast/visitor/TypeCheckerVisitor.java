@@ -56,8 +56,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     public ValType visitNodeVariableDeclaration(NodeVariableDeclaration node) {
         symbolTable.put(node.identifier.lexeme, node.type.type);
         // Checkk if the assignment matches the type
-        if(!isAssignable(node.type.type, node.initialValue.accept(this)))
-            throw new RuntimeException("Illegal Assignment: " + node.type.type + "!=" + node.initialValue.accept(this));
+        if(!isAssignable(node.type.type, node.initializer.accept(this)))
+            throw new RuntimeException("Illegal Assignment: " + node.type.type + "!=" + node.initializer.accept(this));
         else return node.type.type;
     }
 
@@ -76,8 +76,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     }
 
     @Override
-    public ValType visitAssignStatement(NodeAssignStatement node) {
-        return null;
+    public ValType visitAssignStatement(NodeAssignStatement node, ValType type) {
+        return node.assignedValue.accept(this);
     }
 
     // Not always needed
