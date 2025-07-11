@@ -26,7 +26,7 @@ public class Environment {
 
     public void assignVariable(String identifier, Variable variable) {
         if(variables.containsKey(identifier)) variables.put(identifier, variable);
-            else throw new RuntimeException("Cannot assign to unknown Symbol: " + identifier + "the value of: " + variable.getvalue());
+            else throw new RuntimeException("Cannot assign to unknown Symbol: " + identifier + " the value of: " + variable.getvalue());
     }
 
     // ???

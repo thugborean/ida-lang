@@ -30,7 +30,7 @@ public interface ASTVisitor<T> {
     T visitNodeVariableDeclaration(NodeVariableDeclaration node);
     T visitExpressionStatement(NodeExpressionStatement node);
     T visitNodePrintStatement(NodePrintStatement node);
-    T visitAssignStatement(NodeAssignStatement node, ValType type);
+    T visitAssignStatement(NodeAssignStatement node);
 
     //Visit misc
     T visitNodeType(NodeType node); // Currently accesing type directly and not in the visitor pattern, this might change though

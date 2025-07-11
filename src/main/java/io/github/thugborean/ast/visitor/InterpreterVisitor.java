@@ -98,11 +98,25 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
         return null;
     }
 
+    // This function is a total disaster
+    // This defines the new variable and gets its type and value
     @Override
-    public Value visitAssignStatement(NodeAssignStatement node, ValType type) {
-        // This defines the new variable and gets its type and value
-        Variable var = new Variable(environment.getVariable(node.identifier).getType(), node.assignedValue.accept(this));
-        environment.assignVariable(node.identifier, var);
+    public Value visitAssignStatement(NodeAssignStatement node) {
+
+        Value assigned = node.assignedValue.accept(this);
+        ValType type = environment.getVariable(node.identifier).getType();
+        Object raw = assigned.value;
+        Value finalValue;
+        // Check if casting is needed
+        if(type == ValType.DOUBLE) {
+            if(assigned.getType() == ValType.NUMBER) finalValue = new Value(((Integer)raw).doubleValue());
+            else if (assigned.getType() == ValType.DOUBLE) finalValue = assigned; // ???? redundant mayhaps
+            else if(assigned.getType() == ValType.NULL) finalValue = null;
+            else throw new RuntimeException("Cannot Assign ");
+        } else finalValue = new Value(raw);
+
+        // Finally assign the variable 
+        environment.assignVariable(node.identifier, new Variable(type, finalValue));
         return null;
     }
 

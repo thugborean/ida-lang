@@ -8,7 +8,6 @@ import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.NodeType;
-import io.github.thugborean.vm.symbol.ValType;
 import io.github.thugborean.ast.node.statement.NodeAssignStatement;
 import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
@@ -102,7 +101,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     }
 
     @Override
-    public Void visitAssignStatement(NodeAssignStatement node, ValType type) {
+    public Void visitAssignStatement(NodeAssignStatement node) {
         line("Assign Statement: ");
         indentLevel++;
 

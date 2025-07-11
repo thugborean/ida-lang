@@ -18,10 +18,10 @@ import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.symbol.ValType;
 
 public class TypeCheckerVisitor implements ASTVisitor<ValType>{
-    private Environment environment;
+    // private Environment environment;
     private final Map<String, ValType> symbolTable = new HashMap<>();
     public TypeCheckerVisitor(Environment environment) {
-        this.environment = environment;
+        // this.environment = environment;
     }
 
     @Override
@@ -76,7 +76,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     }
 
     @Override
-    public ValType visitAssignStatement(NodeAssignStatement node, ValType type) {
+    public ValType visitAssignStatement(NodeAssignStatement node) {
         return node.assignedValue.accept(this);
     }
 
