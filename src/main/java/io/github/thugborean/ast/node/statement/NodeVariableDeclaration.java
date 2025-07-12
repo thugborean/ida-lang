@@ -14,6 +14,7 @@ public class NodeVariableDeclaration extends NodeStatement {
         this.identifier = identifier;
         this.initializer = initializer;
     }
+
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
         return visitor.visitNodeVariableDeclaration(this);

@@ -2,6 +2,7 @@ package io.github.thugborean.ast.visitor;
 
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
+import io.github.thugborean.ast.node.expression.NodeIncrement;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.*;
@@ -34,4 +35,5 @@ public interface ASTVisitor<T> {
 
     //Visit misc
     T visitNodeType(NodeType node); // Currently accesing type directly and not in the visitor pattern, this might change though
+    T visitNodeIncrement(NodeIncrement nodeIncrement);
 }

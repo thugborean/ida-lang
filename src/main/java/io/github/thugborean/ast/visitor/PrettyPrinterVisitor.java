@@ -2,6 +2,7 @@ package io.github.thugborean.ast.visitor;
 
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.NodeExpression;
+import io.github.thugborean.ast.node.expression.NodeIncrement;
 import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
@@ -166,5 +167,11 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     public Void visitNodeNullLiteral(NodeNullLiteral node) {
         line(node.token.lexeme);
         return null;
+    }
+
+    @Override
+    public Void visitNodeIncrement(NodeIncrement nodeIncrement) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitNodeIncrement'");
     }
 }

@@ -9,7 +9,7 @@ import io.github.thugborean.syntax.TokenType;
 import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.symbol.*;
 
-public class InterpreterVisitor implements ASTVisitor<Value>{
+public class InterpreterVisitor implements ASTVisitor<Value> {
     private Environment environment;
 
     public InterpreterVisitor(Environment environment) {
@@ -18,39 +18,40 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
 
     @Override
     public void walkTree(Program program) {
-        for(NodeStatement statement : program.nodes) {
+        for (NodeStatement statement : program.nodes) {
             statement.accept(this);
         }
     }
 
     @Override
     public Value visitNodeBinaryExpression(NodeBinaryExpression node) {
-        Value left = (Value)node.leftHandSide.accept(this);
-        Value right = (Value)node.rightHandSide.accept(this);
+        Value left = (Value) node.leftHandSide.accept(this);
+        Value right = (Value) node.rightHandSide.accept(this);
         // Determine the operator
         // Number and Double are the only types allowed in this expression
-        switch(node.operator.tokenType) {
+        switch (node.operator.tokenType) {
             case TokenType.Plus: {
                 return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) +
-                (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                        (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
             case TokenType.Minus: {
                 return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) -
-                (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                        (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
             case TokenType.Multiply: {
                 return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) *
-                (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                        (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
             case TokenType.Divide: {
                 return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) /
-                (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                        (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
             case TokenType.Modulo: {
                 return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) %
-                (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                        (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
-            default: throw new RuntimeException("Interpreter Error: Couldn't find operator for expression!");
+            default:
+                throw new RuntimeException("Interpreter Error: Couldn't find operator for expression!");
         }
     }
 
@@ -67,7 +68,8 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
 
     @Override
     public Value visitNodeVariableDeclaration(NodeVariableDeclaration node) {
-        // Adding the variable to the table with null as a default first before assigning it
+        // Adding the variable to the table with null as a default first before
+        // assigning it
         environment.defineVariable(node.identifier.lexeme, new Variable(node.type.type, null));
         // Assign the variable with the given intializer
         node.initializer.accept(this);
@@ -83,7 +85,7 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
 
     @Override
     public Value visitNodePrintStatement(NodePrintStatement node) {
-        Value printable = (Value)node.printable.accept(this);
+        Value printable = (Value) node.printable.accept(this);
         // Print the pritable
         System.out.println(printable);
         // Nothing meaningful
@@ -94,26 +96,37 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
     // This defines the new variable and gets its type and value
     @Override
     public Value visitAssignStatement(NodeAssignStatement node) {
-
         Value assigned = node.assignedValue.accept(this);
         ValType type = environment.getVariable(node.identifier).getType();
         Object raw = assigned.value;
         Value finalValue;
         // Check if casting is needed
-        if(type == ValType.DOUBLE) {
-            if(assigned.getType() == ValType.NUMBER) finalValue = new Value(((Integer)raw).doubleValue());
-            else if (assigned.getType() == ValType.DOUBLE) finalValue = assigned; // ???? redundant mayhaps
-            else if(assigned.getType() == ValType.NULL) finalValue = null;
-            else throw new RuntimeException("Cannot Assign ");
-        } else finalValue = new Value(raw);
+        if (type == ValType.DOUBLE) {
+            if (assigned.getType() == ValType.NUMBER)
+                finalValue = new Value(((Integer)raw).doubleValue());
+            else if (assigned.getType() == ValType.DOUBLE)
+                finalValue = assigned; // ???? redundant mayhaps
+            else if (assigned.getType() == ValType.NULL)
+                finalValue = null;
+            else
+                throw new RuntimeException("Cannot Assign");
+        } else {
+            // Doing some autoboxing and magical casting
+            if(raw instanceof Double) {
+                double d = (Double)raw;
+                Integer i = (int)d;
+                finalValue = new Value(i);
+            } else finalValue = new Value(raw);
+        }
 
-        // Finally assign the variable 
+
+        // Finally assign the variable
         environment.assignVariable(node.identifier, new Variable(type, finalValue));
         return null;
     }
 
     // private void print(Object x) {
-    //     System.out.println(x);
+    // System.out.println(x);
     // }
 
     // NEVER USED NEVER USED!!!!!!!
@@ -139,5 +152,11 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
     @Override
     public Value visitNodeNullLiteral(NodeNullLiteral node) {
         return new Value(null);
+    }
+
+    @Override
+    public Value visitNodeIncrement(NodeIncrement nodeIncrement) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitNodeIncrement'");
     }
 }
