@@ -39,7 +39,20 @@ public class Value {
 
     @Override
     public String toString() {
-        return String.valueOf(value);
+
+        switch (getType()) {
+            case ValType.NUMBER: {
+                return Integer.toString((Integer)value);
+            }
+            case ValType.DOUBLE: {
+                double d = (double)value;
+                return (d == (int)d ? Integer.toString((int)d) : Double.toString(d));
+            }
+            case ValType.STRING: {
+                return (String)value;
+            }
+            default: return String.valueOf(value);
+        }
     }
 
     // This might not be elegant but it'll do
