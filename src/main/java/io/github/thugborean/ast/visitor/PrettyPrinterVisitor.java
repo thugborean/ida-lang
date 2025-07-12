@@ -1,18 +1,10 @@
 package io.github.thugborean.ast.visitor;
 
 import io.github.thugborean.ast.node.Program;
-import io.github.thugborean.ast.node.expression.NodeExpression;
-import io.github.thugborean.ast.node.expression.NodeIncrement;
-import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
-import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
-import io.github.thugborean.ast.node.expression.NodeVariableReference;
+import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
-import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
+import io.github.thugborean.ast.node.statement.*;
 import io.github.thugborean.ast.node.types.NodeType;
-import io.github.thugborean.ast.node.statement.NodeAssignStatement;
-import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
-import io.github.thugborean.ast.node.statement.NodePrintStatement;
-import io.github.thugborean.ast.node.statement.NodeStatement;
 
 public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     private int indentLevel = 0;
@@ -106,14 +98,11 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         line("Assign Statement: ");
         indentLevel++;
 
-        line("reference: ");
-        indentLevel++;
-        line(node.identifier);
-        indentLevel--;
+        line("reference: " + node.identifier);
 
         line("assigned: ");
         indentLevel++;
-        line(node.assignedValue.toString());
+        node.assignedValue.accept(this);
         indentLevel--;
 
         indentLevel--;
@@ -173,5 +162,17 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     public Void visitNodeIncrement(NodeIncrement nodeIncrement) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeIncrement'");
+    }
+
+    @Override
+    public Void visitNodeDecrement(NodeDecrement node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
+    }
+
+    @Override
+    public Void visitStringExpression(NodeStringExpression node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitStringExpression'");
     }
 }
