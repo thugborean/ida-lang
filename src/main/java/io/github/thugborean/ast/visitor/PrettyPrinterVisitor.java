@@ -161,4 +161,10 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         line(node.token.lexeme);
         return null;
     }
+
+    @Override
+    public Void visitNodeNullLiteral(NodeNullLiteral node) {
+        line(node.token.lexeme);
+        return null;
+    }
 }

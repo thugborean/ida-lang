@@ -7,10 +7,10 @@ import io.github.thugborean.vm.symbol.Symbol;
 import io.github.thugborean.vm.symbol.Variable;
 
 public class Environment {
-    private Environment subEnv;
+    // private Environment subEnv;
     private final Map<String, Variable> variables = new HashMap<>();
-    private final Map<String, Function> functions = new HashMap<>();
-    private final Map<String, Structure> structures = new HashMap<>();
+    // private final Map<String, Function> functions = new HashMap<>();
+    // private final Map<String, Structure> structures = new HashMap<>();
 
     // Method used for retrieving the variable from the environment
     public Variable getVariable(String identifier) {

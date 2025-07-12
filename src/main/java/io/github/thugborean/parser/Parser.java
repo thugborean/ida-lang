@@ -11,6 +11,7 @@ import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
 import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.ast.node.expression.NodeVariableReference;
 import io.github.thugborean.ast.node.expression.literal.NodeDoubleLiteral;
+import io.github.thugborean.ast.node.expression.literal.NodeNullLiteral;
 import io.github.thugborean.ast.node.expression.literal.NodeNumericLiteral;
 import io.github.thugborean.ast.node.expression.literal.NodeStringLiteral;
 import io.github.thugborean.ast.node.statement.NodeAssignStatement;
@@ -57,7 +58,9 @@ public class Parser {
         TokenType.Modulo,
 
         TokenType.ParenthesesOpen,
-        TokenType.ParenthesesClosed
+        TokenType.ParenthesesClosed,
+
+        TokenType.NullLiteral
     );
 
     public static final Set<TokenType> operators = Set.of(
@@ -96,7 +99,6 @@ public class Parser {
                     // We have to assume that the next tokens are expression-friendly, otherwise it's over
                     List<Token> expression = new ArrayList<>();
                     // This function does all the heavy lifting
-                    
                     initialValue = parseExpression(expression, false);
                 // LOGIC FOR DOUBLE
                 } else if (type.type == ValType.DOUBLE) {
@@ -217,6 +219,8 @@ public class Parser {
                 return new NodeNumericLiteral(token);
             } else if (token.tokenType == TokenType.DoubleLiteral) {
                 return new NodeDoubleLiteral(token);
+            } else if (token.tokenType == TokenType.NullLiteral) { // This is if the expression is null;
+                return new NodeNullLiteral(token);
             } else throw new RuntimeException("Parser Error: Unexpected token type in expression: " + token.tokenType);
         } else {
             // RPN
@@ -232,6 +236,8 @@ public class Parser {
         HoldingStack holdingStack = new HoldingStack();
 
         for(Token token : tokens) {
+            // If we get this far it means the user is trying to do artithemtics with a NullLiteral
+            if(token.tokenType == TokenType.NullLiteral) throw new RuntimeException("Parser Error: NULL must stand on its own in an expression!");
             // parentheses LOGIC --------------------------------------------------------
             // If open parentheses, push it onto the stack
             if(token.tokenType == TokenType.ParenthesesOpen) holdingStack.push(token);

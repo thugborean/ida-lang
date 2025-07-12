@@ -10,7 +10,6 @@ import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
 import io.github.thugborean.ast.node.statement.NodePrintStatement;
 import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
 import io.github.thugborean.ast.node.types.NodeType;
-import io.github.thugborean.vm.symbol.ValType;
 
 public interface ASTVisitor<T> {
 
@@ -21,6 +20,7 @@ public interface ASTVisitor<T> {
     T visitNodeNumericLiteral(NodeNumericLiteral node);
     T visitNodeDoubleLiteral(NodeDoubleLiteral node);
     T visitNodeStringLiteral(NodeStringLiteral node);
+    T visitNodeNullLiteral(NodeNullLiteral node);
     // Arithmetic Expressions
     T visitNodeBinaryExpression(NodeBinaryExpression node);
     T visitUnaryExpression(NodeUnaryExpression node);

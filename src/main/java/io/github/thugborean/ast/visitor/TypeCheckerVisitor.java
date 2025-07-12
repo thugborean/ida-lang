@@ -80,7 +80,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
         return node.assignedValue.accept(this);
     }
 
-    // Not always needed
+    // Not always needed - DEPRICATED
     public ValType visitNodeType(NodeType node) {
         return null;
     }
@@ -98,6 +98,10 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     public ValType visitNodeStringLiteral(NodeStringLiteral node) {
         return ValType.STRING;
     }
+    @Override
+    public ValType visitNodeNullLiteral(NodeNullLiteral node) {
+        return ValType.NULL;
+    }
 
     private boolean isAssignable(ValType declared, ValType actual) {
         if(declared == actual) return true;
@@ -109,6 +113,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
         if(declared == ValType.CHARACTER && actual == ValType.STRING) return false;
         // Assigning a Character to a String
         if(declared == ValType.STRING && actual == ValType.CHARACTER) return true;
+        // Assigning Null to anything
+        if(actual == ValType.NULL) return true;
 
         return false;
     }

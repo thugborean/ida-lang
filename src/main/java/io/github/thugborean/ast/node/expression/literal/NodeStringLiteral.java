@@ -11,6 +11,7 @@ public class NodeStringLiteral extends NodeLiteral{
 
     // THIS IS POSTPONING COMPLEXITY !!!! THIS MUST BE CHANGED LATER DOWN THE LINE!!!!!!!!!!!
     public String getValue() {
+        if(value == null) return null;
         String str = (String)value;
         return str.substring(1, str.length() - 1);
     }

@@ -1,3 +1,2 @@
-double a = 3.0 + 3.2;
-double b = 1.2;
-print(a + b);
+string a = null;
+print(a);

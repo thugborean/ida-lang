@@ -1,21 +1,13 @@
 package io.github.thugborean.ast.visitor;
 
 import io.github.thugborean.ast.node.Program;
-import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
-import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
-import io.github.thugborean.ast.node.expression.NodeVariableReference;
+import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
-import io.github.thugborean.ast.node.statement.NodeAssignStatement;
-import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
-import io.github.thugborean.ast.node.statement.NodePrintStatement;
-import io.github.thugborean.ast.node.statement.NodeStatement;
-import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
-import io.github.thugborean.ast.node.types.NodeType;
+import io.github.thugborean.ast.node.statement.*;
+import io.github.thugborean.ast.node.types.*;
 import io.github.thugborean.syntax.TokenType;
 import io.github.thugborean.vm.Environment;
-import io.github.thugborean.vm.symbol.Value;
-import io.github.thugborean.vm.symbol.Variable;
-import io.github.thugborean.vm.symbol.ValType;
+import io.github.thugborean.vm.symbol.*;
 
 public class InterpreterVisitor implements ASTVisitor<Value>{
     private Environment environment;
@@ -142,5 +134,10 @@ public class InterpreterVisitor implements ASTVisitor<Value>{
     @Override
     public Value visitNodeStringLiteral(NodeStringLiteral node) {
         return new Value(node.getValue());
+    }
+
+    @Override
+    public Value visitNodeNullLiteral(NodeNullLiteral node) {
+        return new Value(null);
     }
 }
