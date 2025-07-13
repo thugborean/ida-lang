@@ -159,4 +159,16 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeIncrement'");
     }
+
+    @Override
+    public Value visitNodeDecrement(NodeDecrement node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
+    }
+
+    @Override
+    public Value visitStringExpression(NodeStringExpression node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitStringExpression'");
+    }
 }

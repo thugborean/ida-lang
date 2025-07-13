@@ -12,4 +12,8 @@ public abstract class NodeLiteral extends NodeExpression{
     }
     
     public abstract Object getValue();
+
+    public String toString() {
+        return this.value.toString();
+    }
 }

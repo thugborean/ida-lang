@@ -128,12 +128,6 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         System.out.println(node.accept(this));
     }
 
-    // @Override
-    // public Void visitNodeLiteral(NodeLiteral node) {
-    //     line(node.token.lexeme);
-    //     return null;
-    // }
-
     @Override
     public Void visitNodeNumericLiteral(NodeNumericLiteral node) {
         line(node.token.lexeme);
@@ -172,7 +166,9 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
 
     @Override
     public Void visitStringExpression(NodeStringExpression node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitStringExpression'");
+        for(NodeExpression n : node.stringElements) {
+            line(n.toString());
+        }
+        return null;
     }
 }

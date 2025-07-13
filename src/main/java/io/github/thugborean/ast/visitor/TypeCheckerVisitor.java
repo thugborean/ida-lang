@@ -12,10 +12,10 @@ import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.symbol.ValType;
 
 public class TypeCheckerVisitor implements ASTVisitor<ValType>{
-    // private Environment environment;
+    private Environment environment;
     private final Map<String, ValType> symbolTable = new HashMap<>();
     public TypeCheckerVisitor(Environment environment) {
-        // this.environment = environment;
+        this.environment = environment;
     }
 
     @Override
@@ -71,6 +71,9 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
 
     @Override
     public ValType visitAssignStatement(NodeAssignStatement node) {
+        ValType type = environment.getVariable(node.identifier).getType();
+        if(!isAssignable(type, node.assignedValue.accept(this)))
+            throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.assignedValue.accept(this));
         return node.assignedValue.accept(this);
     }
 
@@ -122,5 +125,17 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     public ValType visitNodeIncrement(NodeIncrement nodeIncrement) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeIncrement'");
+    }
+
+    @Override
+    public ValType visitNodeDecrement(NodeDecrement node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
+    }
+
+    @Override
+    public ValType visitStringExpression(NodeStringExpression node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visitStringExpression'");
     }
 }

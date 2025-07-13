@@ -1,2 +1,1 @@
-string a = null;
-print(a);
+print("hej" + "hej2");

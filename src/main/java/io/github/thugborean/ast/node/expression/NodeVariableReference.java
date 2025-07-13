@@ -13,4 +13,8 @@ public class NodeVariableReference extends NodeExpression{
     public <T> T accept(ASTVisitor<T> visitor) {
         return visitor.visitNodeVariableReference(this);
     }
+
+    public String toString() {
+        return this.identifier;
+    }
 }

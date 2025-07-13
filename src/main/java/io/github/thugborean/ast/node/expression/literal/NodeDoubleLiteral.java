@@ -11,7 +11,7 @@ public class NodeDoubleLiteral extends NodeLiteral{
 
     @Override
     public Double getValue() {
-        return (Double) this.value;
+        return (Double)this.value;
     }
     
     public <T> T accept(ASTVisitor<T> visitor) {
