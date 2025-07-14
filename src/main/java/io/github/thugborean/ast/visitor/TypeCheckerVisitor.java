@@ -2,6 +2,7 @@ package io.github.thugborean.ast.visitor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
@@ -12,10 +13,14 @@ import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.symbol.ValType;
 
 public class TypeCheckerVisitor implements ASTVisitor<ValType>{
-    private Environment environment;
+    // private Environment environment;
     private final Map<String, ValType> symbolTable = new HashMap<>();
+    private final Set<ValType> reugularExpressionTypes = Set.of(
+        ValType.NUMBER,
+        ValType.DOUBLE
+    );
     public TypeCheckerVisitor(Environment environment) {
-        this.environment = environment;
+        // this.environment = environment;
     }
 
     @Override
@@ -29,7 +34,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     public ValType visitNodeBinaryExpression(NodeBinaryExpression node) {
         ValType lhs = node.leftHandSide.accept(this);
         ValType rhs = node.rightHandSide.accept(this);
-
+        if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) 
+            throw new RuntimeException("Illegal type in binary expression: " + lhs + " + " + rhs);
         // If at least one of the sides are decimal then we're dealing with a Double
         if(lhs == ValType.DOUBLE || rhs == ValType.DOUBLE) return ValType.DOUBLE;
             else return ValType.NUMBER;
@@ -49,8 +55,12 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     @Override
     public ValType visitNodeVariableDeclaration(NodeVariableDeclaration node) {
         symbolTable.put(node.identifier.lexeme, node.type.type);
-        // Checkk if the assignment matches the type
-        if(!isAssignable(node.type.type, symbolTable.get(node.identifier.lexeme)))
+        ValType declaredType = node.type.type;
+        ValType initType = node.initializer.accept(this);
+        print(declaredType);
+        print(initType);
+        // Check if the assignment matches the type
+        if(!isAssignable(declaredType, initType))
             throw new RuntimeException("Illegal Assignment: " + node.type.type + "!=" + node.initializer.accept(this));
         else return node.type.type;
     }
@@ -63,7 +73,9 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
 
     @Override
     public ValType visitAssignStatement(NodeAssignStatement node) {
-        ValType type = environment.getVariable(node.identifier).getType();
+        ValType type = symbolTable.get(node.identifier);
+        // print(type);
+        // print(node.assignedValue.accept(this));
         if(!isAssignable(type, node.assignedValue.accept(this)))
             throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.assignedValue.accept(this));
         return node.assignedValue.accept(this);
@@ -92,15 +104,19 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     }
 
     private boolean isAssignable(ValType declared, ValType actual) {
+        print("hello");
         if(declared == actual) return true;
         // Assigning a Double to a Number
         if(declared == ValType.NUMBER && actual == ValType.DOUBLE) return false;
+        if(declared == ValType.NUMBER && actual == ValType.STRING) return false;
         // Assigning a Number to a double 
         if(declared == ValType.DOUBLE && actual == ValType.NUMBER) return true;
         // Assigning a String to a Character
         if(declared == ValType.CHARACTER && actual == ValType.STRING) return false;
         // Assigning a Character to a String
         if(declared == ValType.STRING && actual == ValType.CHARACTER) return true;
+        if(declared == ValType.STRING && actual == ValType.NUMBER) return false;
+        if(declared == ValType.STRING && actual == ValType.DOUBLE) return false;
         // Assigning Null to anything
         if(actual == ValType.NULL) return true;
 
@@ -109,8 +125,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
 
     @Override
     public ValType visitNodeIncrement(NodeIncrement nodeIncrement) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitNodeIncrement'");
+        
+        return null;
     }
 
     @Override

@@ -60,8 +60,6 @@ public class Parser {
 
     public static final Set<TokenType> stringExpressionTokens = Set.of(
         TokenType.Identifier,
-        TokenType.NumericLiteral,
-        TokenType.DoubleLiteral,
         TokenType.StringLiteral,
         TokenType.CharacterLiteral,
         TokenType.BooleanLiteral,

@@ -34,13 +34,11 @@ public interface ASTVisitor<T> {
     T visitNodeIncrement(NodeIncrement node);
     T visitNodeDecrement(NodeDecrement node);
     T visitStringExpression(NodeStringExpression node);
-
     // Visiting NodeStatement
     T visitNodeVariableDeclaration(NodeVariableDeclaration node);
     T visitExpressionStatement(NodeExpressionStatement node);
     T visitNodePrintStatement(NodePrintStatement node);
     T visitAssignStatement(NodeAssignStatement node);
-
     //Visit misc
     T visitNodeType(NodeType node);
 }
