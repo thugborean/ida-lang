@@ -50,23 +50,15 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     public ValType visitNodeVariableDeclaration(NodeVariableDeclaration node) {
         symbolTable.put(node.identifier.lexeme, node.type.type);
         // Checkk if the assignment matches the type
-        if(!isAssignable(node.type.type, node.initializer.accept(this)))
+        if(!isAssignable(node.type.type, symbolTable.get(node.identifier.lexeme)))
             throw new RuntimeException("Illegal Assignment: " + node.type.type + "!=" + node.initializer.accept(this));
         else return node.type.type;
     }
 
     @Override
     public ValType visitExpressionStatement(NodeExpressionStatement node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitExpressionStatement'");
-    }
-
-    @Override
-    public ValType visitNodePrintStatement(NodePrintStatement node) {
-        ValType valType = node.printable.accept(this);
-        // Checks if the value can be printed
-        if(isPrintable(valType)) return ValType.VOID;
-            else throw new RuntimeException("Cannot print value of type: " + valType);
+        node.accept(this);
+        return null;
     }
 
     @Override
@@ -77,12 +69,11 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
         return node.assignedValue.accept(this);
     }
 
-    // Not always needed - DEPRICATED
+    // DEPRICATED
     public ValType visitNodeType(NodeType node) {
         return null;
     }
-
-    // This vistitor may want these methods
+    // This vistitor needs these specific methods
     @Override
     public ValType visitNodeNumericLiteral(NodeNumericLiteral node) {
         return ValType.NUMBER;
@@ -116,11 +107,6 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
         return false;
     }
 
-    private boolean isPrintable(ValType printable) {
-        if(printable == ValType.NULL || printable == ValType.VOID) return false;
-            else return true;
-    }
-
     @Override
     public ValType visitNodeIncrement(NodeIncrement nodeIncrement) {
         // TODO Auto-generated method stub
@@ -135,7 +121,24 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
 
     @Override
     public ValType visitStringExpression(NodeStringExpression node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitStringExpression'");
+        // This will check if the string expression contains unknown Symbols
+        for(NodeExpression expr : node.stringElements) {
+            if(expr instanceof NodeVariableReference) {
+                NodeVariableReference ref = (NodeVariableReference)expr;
+                if(!symbolTable.containsKey(ref.identifier)) throw new RuntimeException("Unknown Symbol: " + ref.identifier);
+            }
+        }
+        return ValType.STRING;
+    }
+
+    @Override
+    public ValType visitNodePrintStatement(NodePrintStatement node) {
+        // Checks if the value can be printed
+        node.printable.accept(this);
+        return null;
+    }
+
+    public void print(Object x) {
+        System.out.println(x);
     }
 }

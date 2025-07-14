@@ -42,5 +42,5 @@ public interface ASTVisitor<T> {
     T visitAssignStatement(NodeAssignStatement node);
 
     //Visit misc
-    T visitNodeType(NodeType node); // Currently accesing type directly and not in the visitor pattern, this might change though
+    T visitNodeType(NodeType node);
 }

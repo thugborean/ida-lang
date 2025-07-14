@@ -25,8 +25,8 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
     @Override
     public Value visitNodeBinaryExpression(NodeBinaryExpression node) {
-        Value left = (Value) node.leftHandSide.accept(this);
-        Value right = (Value) node.rightHandSide.accept(this);
+        Value left = (Value)node.leftHandSide.accept(this);
+        Value right = (Value)node.rightHandSide.accept(this);
         // Determine the operator
         // Number and Double are the only types allowed in this expression
         switch (node.operator.tokenType) {
@@ -85,7 +85,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
     @Override
     public Value visitNodePrintStatement(NodePrintStatement node) {
-        Value printable = (Value) node.printable.accept(this);
+        Value printable = node.printable.accept(this);
         // Print the pritable
         System.out.println(printable);
         // Nothing meaningful
@@ -118,16 +118,14 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
                 finalValue = new Value(i);
             } else finalValue = new Value(raw);
         }
-
-
         // Finally assign the variable
         environment.assignVariable(node.identifier, new Variable(type, finalValue));
         return null;
     }
 
-    // private void print(Object x) {
-    // System.out.println(x);
-    // }
+    public void print(Object x) {
+    System.out.println(x);
+    }
 
     // NEVER USED NEVER USED!!!!!!!
     public Value visitNodeType(NodeType node) {
@@ -168,7 +166,11 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
     @Override
     public Value visitStringExpression(NodeStringExpression node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitStringExpression'");
+        StringBuilder sb = new StringBuilder();
+        // This should append lexemes of literals and the values of variables, all as strings
+        for(NodeExpression expr : node.stringElements) {
+            sb.append(String.valueOf(expr.accept(this)));
+        }
+        return new Value(sb.toString());
     }
 }

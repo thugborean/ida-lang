@@ -1,1 +1,3 @@
-print("hej" + "hej2");
+num a = 1;
+num b = 2;
+print(a + b + "c" + 2.1);
