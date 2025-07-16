@@ -1,1 +1,5 @@
+num aerwer = 132;
+string b123 = "hello";
+double cergv = 1.2;
+
 print("hello");

@@ -50,6 +50,13 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         for(NodeStatement statement : program.nodes) {
             statement.accept(this);
         }
+        logger.info("Finished TypeChecking Program!");
+        logger.info("Complete Symbol Table...");
+        logger.info("--------------------------------------------------");
+        for(Map.Entry<String, ValType> entry : symbolTable.entrySet()) {
+            logger.info(String.format("Identifier %-15s, Type: %-10s", entry.getKey(), entry.getValue()));
+        }
+        logger.info("--------------------------------------------------");
     }
 
     @Override
@@ -57,8 +64,11 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         ValType lhs = node.leftHandSide.accept(this);
         ValType rhs = node.rightHandSide.accept(this);
         logger.info(String.format("Checking Binary Expression, types %s, %s", lhs, rhs));
-        if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) 
+        if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) {
+            logger.severe("");
             throw new RuntimeException("Illegal type in binary expression: " + lhs + " + " + rhs);
+        }
+
         // If at least one of the sides are decimal then we're dealing with a Double
         if(lhs == ValType.DOUBLE || rhs == ValType.DOUBLE) return ValType.DOUBLE;
             else return ValType.NUMBER;
@@ -102,8 +112,11 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitAssignStatement(NodeAssignStatement node) {
         ValType type = symbolTable.get(node.identifier);
-        if(!isAssignable(type, node.assignedValue.accept(this)))
+        if(!isAssignable(type, node.assignedValue.accept(this))) {
+            logger.severe(String.format("Found illegal assignment: %s != %s", type, node.assignedValue.accept(this)));
             throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.assignedValue.accept(this));
+        }
+
         return node.assignedValue.accept(this);
     }
 
