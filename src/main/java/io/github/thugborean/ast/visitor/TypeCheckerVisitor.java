@@ -1,30 +1,52 @@
 package io.github.thugborean.ast.visitor;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
 import io.github.thugborean.ast.node.types.*;
-import io.github.thugborean.vm.Environment;
+import io.github.thugborean.logging.CustomFormatter;
 import io.github.thugborean.vm.symbol.ValType;
 
-public class TypeCheckerVisitor implements ASTVisitor<ValType>{
-    // private Environment environment;
+public class TypeCheckerVisitor implements ASTVisitor<ValType> {
+    private FileHandler fileHandler;
+    // Create the logger and give it the class' name
+    private final static Logger logger = Logger.getLogger(TypeCheckerVisitor.class.getName());
     private final Map<String, ValType> symbolTable = new HashMap<>();
     private final Set<ValType> reugularExpressionTypes = Set.of(
         ValType.NUMBER,
         ValType.DOUBLE
     );
-    public TypeCheckerVisitor(Environment environment) {
-        // this.environment = environment;
+
+    public TypeCheckerVisitor() {
+        try {
+            // If the directory doesn't exist then make it
+            File logDir = new File("logs");
+            if(!logDir.exists()) logDir.mkdirs();
+            fileHandler = new FileHandler("logs/log.log", false);
+            fileHandler.setFormatter(new CustomFormatter());
+            fileHandler.setLevel(Level.INFO);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // Adding the handler if everything goes to plan
+        logger.addHandler(fileHandler);
+        logger.setLevel(Level.INFO);
+        logger.setUseParentHandlers(false);
     }
 
     @Override
     public void walkTree(Program program) {
+        logger.info("TypeChecking Program...");
         for(NodeStatement statement : program.nodes) {
             statement.accept(this);
         }
@@ -34,6 +56,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     public ValType visitNodeBinaryExpression(NodeBinaryExpression node) {
         ValType lhs = node.leftHandSide.accept(this);
         ValType rhs = node.rightHandSide.accept(this);
+        logger.info(String.format("Checking Binary Expression, types %s, %s", lhs, rhs));
         if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) 
             throw new RuntimeException("Illegal type in binary expression: " + lhs + " + " + rhs);
         // If at least one of the sides are decimal then we're dealing with a Double
@@ -48,21 +71,26 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
 
     @Override
     public ValType visitNodeVariableReference(NodeVariableReference node) {
+        logger.info("Checking if Symbol is present: " + node.identifier);
         if(symbolTable.containsKey(node.identifier)) return symbolTable.get(node.identifier);
             else throw new RuntimeException("Unrecognized Symbol: " + node.identifier);
     }
 
     @Override
     public ValType visitNodeVariableDeclaration(NodeVariableDeclaration node) {
+        logger.info("Checking a variable declaration...");
         symbolTable.put(node.identifier.lexeme, node.type.type);
+        logger.info("Variable identifier is: " + node.identifier.lexeme);
+
         ValType declaredType = node.type.type;
-        ValType initType = node.initializer.accept(this);
-        print(declaredType);
-        print(initType);
+        logger.info("Variable type is " + node.type.type);
+
         // Check if the assignment matches the type
-        if(!isAssignable(declaredType, initType))
-            throw new RuntimeException("Illegal Assignment: " + node.type.type + "!=" + node.initializer.accept(this));
-        else return node.type.type;
+        logger.info("Checking if initializer is type-compatible...");
+        ValType initType = node.initializer.accept(this);
+
+        logger.info(String.format("Type: %s is compatible with initializer: %s", declaredType, initType));
+        return node.type.type;
     }
 
     @Override
@@ -74,8 +102,6 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     @Override
     public ValType visitAssignStatement(NodeAssignStatement node) {
         ValType type = symbolTable.get(node.identifier);
-        // print(type);
-        // print(node.assignedValue.accept(this));
         if(!isAssignable(type, node.assignedValue.accept(this)))
             throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.assignedValue.accept(this));
         return node.assignedValue.accept(this);
@@ -104,7 +130,6 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
     }
 
     private boolean isAssignable(ValType declared, ValType actual) {
-        print("hello");
         if(declared == actual) return true;
         // Assigning a Double to a Number
         if(declared == ValType.NUMBER && actual == ValType.DOUBLE) return false;
@@ -141,7 +166,10 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
         for(NodeExpression expr : node.stringElements) {
             if(expr instanceof NodeVariableReference) {
                 NodeVariableReference ref = (NodeVariableReference)expr;
-                if(!symbolTable.containsKey(ref.identifier)) throw new RuntimeException("Unknown Symbol: " + ref.identifier);
+                if(!symbolTable.containsKey(ref.identifier)) {
+                    logger.severe("Couldn't find Symbol: " + ref.identifier);
+                    throw new RuntimeException("Unknown Symbol: " + ref.identifier);
+                }
             }
         }
         return ValType.STRING;
@@ -149,8 +177,10 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType>{
 
     @Override
     public ValType visitNodePrintStatement(NodePrintStatement node) {
+        logger.info("Checking Print Statement...");
         // Checks if the value can be printed
         node.printable.accept(this);
+        logger.info("Print Statement has passed");
         return null;
     }
 

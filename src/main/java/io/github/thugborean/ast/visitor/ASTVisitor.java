@@ -1,18 +1,10 @@
 package io.github.thugborean.ast.visitor;
 
 import io.github.thugborean.ast.node.Program;
-import io.github.thugborean.ast.node.expression.NodeBinaryExpression;
-import io.github.thugborean.ast.node.expression.NodeDecrement;
-import io.github.thugborean.ast.node.expression.NodeIncrement;
-import io.github.thugborean.ast.node.expression.NodeStringExpression;
-import io.github.thugborean.ast.node.expression.NodeUnaryExpression;
-import io.github.thugborean.ast.node.expression.NodeVariableReference;
+import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
-import io.github.thugborean.ast.node.statement.NodeAssignStatement;
-import io.github.thugborean.ast.node.statement.NodeExpressionStatement;
-import io.github.thugborean.ast.node.statement.NodePrintStatement;
-import io.github.thugborean.ast.node.statement.NodeVariableDeclaration;
-import io.github.thugborean.ast.node.types.NodeType;
+import io.github.thugborean.ast.node.statement.*;
+import io.github.thugborean.ast.node.types.*;
 
 public interface ASTVisitor<T> {
 

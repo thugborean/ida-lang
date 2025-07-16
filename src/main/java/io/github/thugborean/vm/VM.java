@@ -23,7 +23,7 @@ public class VM {
     // This is the method that runs the logic
     public void run(Program program) {
         // Check for types
-        TypeCheckerVisitor tpv = new TypeCheckerVisitor(environment);
+        TypeCheckerVisitor tpv = new TypeCheckerVisitor();
         tpv.walkTree(program);
         // Implement logic
         InterpreterVisitor iv = new InterpreterVisitor(environment);
