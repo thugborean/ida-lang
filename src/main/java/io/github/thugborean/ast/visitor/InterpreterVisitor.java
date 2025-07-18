@@ -1,16 +1,21 @@
 package io.github.thugborean.ast.visitor;
 
+import java.util.logging.Logger;
+
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
 import io.github.thugborean.ast.node.types.*;
+import io.github.thugborean.logging.LoggingManager;
 import io.github.thugborean.syntax.TokenType;
 import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.symbol.*;
 
 public class InterpreterVisitor implements ASTVisitor<Value> {
     private Environment environment;
+    private final static Logger logger = LoggingManager.getLogger(InterpreterVisitor.class);
+
 
     public InterpreterVisitor(Environment environment) {
         this.environment = environment;
@@ -18,9 +23,11 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
     @Override
     public void walkTree(Program program) {
+        logger.info("Interpreting Program...");
         for (NodeStatement statement : program.nodes) {
             statement.accept(this);
         }
+        logger.info("Finished Interpreting Program");
     }
 
     @Override

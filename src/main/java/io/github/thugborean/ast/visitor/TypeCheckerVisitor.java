@@ -1,12 +1,8 @@
 package io.github.thugborean.ast.visitor;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.github.thugborean.ast.node.Program;
@@ -14,35 +10,17 @@ import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
 import io.github.thugborean.ast.node.types.*;
-import io.github.thugborean.logging.CustomFormatter;
+import io.github.thugborean.logging.LoggingManager;
 import io.github.thugborean.vm.symbol.ValType;
 
 public class TypeCheckerVisitor implements ASTVisitor<ValType> {
-    private FileHandler fileHandler;
     // Create the logger and give it the class' name
-    private final static Logger logger = Logger.getLogger(TypeCheckerVisitor.class.getName());
+    private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
     private final Map<String, ValType> symbolTable = new HashMap<>();
     private final Set<ValType> reugularExpressionTypes = Set.of(
         ValType.NUMBER,
         ValType.DOUBLE
     );
-
-    public TypeCheckerVisitor() {
-        try {
-            // If the directory doesn't exist then make it
-            File logDir = new File("logs");
-            if(!logDir.exists()) logDir.mkdirs();
-            fileHandler = new FileHandler("logs/log.log", false);
-            fileHandler.setFormatter(new CustomFormatter());
-            fileHandler.setLevel(Level.INFO);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        // Adding the handler if everything goes to plan
-        logger.addHandler(fileHandler);
-        logger.setLevel(Level.INFO);
-        logger.setUseParentHandlers(false);
-    }
 
     @Override
     public void walkTree(Program program) {

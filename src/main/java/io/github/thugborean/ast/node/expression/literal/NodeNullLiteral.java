@@ -15,8 +15,6 @@ public class NodeNullLiteral extends NodeLiteral{
 
     @Override
     public Object getValue() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getValue'");
+        return null;
     }
-    
 }
