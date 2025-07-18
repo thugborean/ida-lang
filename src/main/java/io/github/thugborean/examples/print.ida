@@ -1,5 +1,5 @@
-num aerwer = 132;
-string b123 = "hello";
-double cergv = 1.2;
+num a = 1 + 2 * 3;
+string b = "hello";
+double c = 1.3;
 
-print("hello");
+print(a + b + c);

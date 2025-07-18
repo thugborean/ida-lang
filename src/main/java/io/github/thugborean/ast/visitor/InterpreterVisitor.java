@@ -27,7 +27,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         for (NodeStatement statement : program.nodes) {
             statement.accept(this);
         }
-        logger.info("Finished Interpreting Program");
+        logger.info("Finished Interpreting Program!");
     }
 
     @Override
@@ -36,6 +36,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         Value right = (Value)node.rightHandSide.accept(this);
         // Determine the operator
         // Number and Double are the only types allowed in this expression
+        logger.info(String.format("Performing arithmetic: %s %s %s", left, node.operator.lexeme, right));
         switch (node.operator.tokenType) {
             case TokenType.Plus: {
                 return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) +
@@ -57,44 +58,53 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
                 return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) %
                         (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
             }
-            default:
+            default: {
+                logger.severe("Unknown operator " + node.operator.lexeme);
                 throw new RuntimeException("Interpreter Error: Couldn't find operator for expression!");
+            }
+                
         }
     }
 
     @Override
     public Value visitUnaryExpression(NodeUnaryExpression node) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitUnaryExpression'");
     }
 
     @Override
     public Value visitNodeVariableReference(NodeVariableReference node) {
+        logger.info("Getting value of reference: " + node.identifier);
         return environment.getVariable(node.identifier).getvalue();
     }
 
     @Override
     public Value visitNodeVariableDeclaration(NodeVariableDeclaration node) {
-        // Adding the variable to the table with null as a default first before
-        // assigning it
-        environment.defineVariable(node.identifier.lexeme, new Variable(node.type.type, null));
+        logger.info("Declaring Variable...");
+        String identifier = node.identifier.lexeme;
+        // Adding the variable to the table with null as a default first before assigning it
+        logger.info("Adding Variable identifier to envirionment: " + identifier);
+        environment.defineVariable(identifier, new Variable(node.type.type, null));
         // Assign the variable with the given intializer
+        logger.info("Assigning Variable with given initializer...");
         node.initializer.accept(this);
+        logger.info(String.format("Finished declaring Variable %s", identifier));
         // Nothing meaningful
         return null;
     }
 
     @Override
     public Value visitExpressionStatement(NodeExpressionStatement node) {
-        // TODO Auto-generated method stub
+
         throw new UnsupportedOperationException("Unimplemented method 'visitExpressionStatement'");
     }
 
     @Override
     public Value visitNodePrintStatement(NodePrintStatement node) {
+        logger.info("Printing to output...");
         Value printable = node.printable.accept(this);
         // Print the pritable
         System.out.println(printable);
+        logger.info("Finished printing to output");
         // Nothing meaningful
         return null;
     }
@@ -103,6 +113,8 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     // This defines the new variable and gets its type and value
     @Override
     public Value visitAssignStatement(NodeAssignStatement node) {
+        String identifier = node.identifier;
+        logger.info("Assigning to: " + identifier);
         Value assigned = node.assignedValue.accept(this);
         ValType type = environment.getVariable(node.identifier).getType();
         Object raw = assigned.value;
@@ -115,8 +127,10 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
                 finalValue = assigned; // ???? redundant mayhaps
             else if (assigned.getType() == ValType.NULL)
                 finalValue = null;
-            else
+            else {
+                logger.severe(String.format("Couldn't assign %s to %s", assigned.toString(), identifier));
                 throw new RuntimeException("Cannot Assign");
+            }
         } else {
             // Doing some autoboxing and magical casting
             if(raw instanceof Double) {
@@ -126,7 +140,8 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
             } else finalValue = new Value(raw);
         }
         // Finally assign the variable
-        environment.assignVariable(node.identifier, new Variable(type, finalValue));
+        environment.assignVariable(identifier, new Variable(type, finalValue));
+        logger.info("Assignment of Variable: " + identifier + " finished");
         return null;
     }
 
@@ -161,23 +176,23 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
     @Override
     public Value visitNodeIncrement(NodeIncrement nodeIncrement) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeIncrement'");
     }
 
     @Override
     public Value visitNodeDecrement(NodeDecrement node) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
     }
 
     @Override
     public Value visitStringExpression(NodeStringExpression node) {
+        logger.info("Building String Expression...");
         StringBuilder sb = new StringBuilder();
         // This should append lexemes of literals and the values of variables, all as strings
         for(NodeExpression expr : node.stringElements) {
             sb.append(String.valueOf(expr.accept(this)));
         }
+        logger.info("Finished String Expression!");
         return new Value(sb.toString());
     }
 }

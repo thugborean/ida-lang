@@ -28,7 +28,6 @@ public class LoggingManager {
         Logger logger = Logger.getLogger(cls.getName());
         logger.setUseParentHandlers(false);
         logger.setLevel(Level.INFO);
-
         if(logger.getHandlers().length == 0) {
             logger.addHandler(fileHandler);
         }
