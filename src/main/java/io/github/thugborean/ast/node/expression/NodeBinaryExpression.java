@@ -17,6 +17,6 @@ public class NodeBinaryExpression extends NodeExpression{
     public NodeBinaryExpression(){}
 
     public <T> T accept(ASTVisitor<T> visitor) {
-        return visitor.visitNodeBinaryExpression(this);
+        return visitor.visitNodeBinaryExpression(this, null);
     }
 }

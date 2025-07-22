@@ -30,30 +30,29 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         }
         logger.info("Finished TypeChecking Program!");
         logger.info("Complete Symbol Table...");
-        logger.info("--------------------------------------------------");
+        logger.info("##################################################");
         for(Map.Entry<String, ValType> entry : symbolTable.entrySet()) {
             logger.info(String.format("Identifier %-15s, Type: %-10s", entry.getKey(), entry.getValue()));
         }
-        logger.info("--------------------------------------------------");
+        logger.info("##################################################");
     }
 
     @Override
-    public ValType visitNodeBinaryExpression(NodeBinaryExpression node) {
+    public ValType visitNodeBinaryExpression(NodeBinaryExpression node, ValType type) {
         ValType lhs = node.leftHandSide.accept(this);
         ValType rhs = node.rightHandSide.accept(this);
         logger.info(String.format("Checking Binary Expression, types %s, %s", lhs, rhs));
         if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) {
-            logger.severe("");
-            throw new RuntimeException("Illegal type in binary expression: " + lhs + " + " + rhs);
+            logger.severe(String.format("Illegal type in numeric expression: %s + %s!", lhs, rhs));
+            throw new RuntimeException(String.format("Illegal type in numeric expression: %s + %s!", lhs, rhs));
         }
-
         // If at least one of the sides are decimal then we're dealing with a Double
         if(lhs == ValType.DOUBLE || rhs == ValType.DOUBLE) return ValType.DOUBLE;
             else return ValType.NUMBER;
     }
 
     @Override
-    public ValType visitUnaryExpression(NodeUnaryExpression node) {
+    public ValType visitUnaryExpression(NodeUnaryExpression node, ValType type) {
         throw new UnsupportedOperationException("Unimplemented method 'visitUnaryExpression'");
     }
 
@@ -94,7 +93,6 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             logger.severe(String.format("Found illegal assignment: %s != %s", type, node.assignedValue.accept(this)));
             throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.assignedValue.accept(this));
         }
-
         return node.assignedValue.accept(this);
     }
 
@@ -141,29 +139,12 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     @Override
     public ValType visitNodeIncrement(NodeIncrement nodeIncrement) {
-        
         return null;
     }
 
     @Override
     public ValType visitNodeDecrement(NodeDecrement node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
-    }
-
-    @Override
-    public ValType visitStringExpression(NodeStringExpression node) {
-        // This will check if the string expression contains unknown Symbols
-        for(NodeExpression expr : node.stringElements) {
-            if(expr instanceof NodeVariableReference) {
-                NodeVariableReference ref = (NodeVariableReference)expr;
-                if(!symbolTable.containsKey(ref.identifier)) {
-                    logger.severe("Couldn't find Symbol: " + ref.identifier);
-                    throw new RuntimeException("Unknown Symbol: " + ref.identifier);
-                }
-            }
-        }
-        return ValType.STRING;
+        return null;
     }
 
     @Override

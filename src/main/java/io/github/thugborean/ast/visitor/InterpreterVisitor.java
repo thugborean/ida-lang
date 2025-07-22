@@ -31,7 +31,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     }
 
     @Override
-    public Value visitNodeBinaryExpression(NodeBinaryExpression node) {
+    public Value visitNodeBinaryExpression(NodeBinaryExpression node, ValType type) {
         Value left = (Value)node.leftHandSide.accept(this);
         Value right = (Value)node.rightHandSide.accept(this);
         // Determine the operator
@@ -67,7 +67,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     }
 
     @Override
-    public Value visitUnaryExpression(NodeUnaryExpression node) {
+    public Value visitUnaryExpression(NodeUnaryExpression node, ValType type) {
         throw new UnsupportedOperationException("Unimplemented method 'visitUnaryExpression'");
     }
 
@@ -87,7 +87,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         // Assign the variable with the given intializer
         logger.info("Assigning Variable with given initializer...");
         node.initializer.accept(this);
-        logger.info(String.format("Finished declaring Variable %s", identifier));
+        logger.info(String.format("Finished declaring Variable: %s", identifier));
         // Nothing meaningful
         return null;
     }
@@ -141,7 +141,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         }
         // Finally assign the variable
         environment.assignVariable(identifier, new Variable(type, finalValue));
-        logger.info("Assignment of Variable: " + identifier + " finished");
+        logger.info("Finished assigning Variable: " + identifier);
         return null;
     }
 
@@ -182,17 +182,5 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     @Override
     public Value visitNodeDecrement(NodeDecrement node) {
         throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
-    }
-
-    @Override
-    public Value visitStringExpression(NodeStringExpression node) {
-        logger.info("Building String Expression...");
-        StringBuilder sb = new StringBuilder();
-        // This should append lexemes of literals and the values of variables, all as strings
-        for(NodeExpression expr : node.stringElements) {
-            sb.append(String.valueOf(expr.accept(this)));
-        }
-        logger.info("Finished String Expression!");
-        return new Value(sb.toString());
     }
 }

@@ -11,20 +11,12 @@ import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
 import io.github.thugborean.ast.node.types.*;
-import io.github.thugborean.syntax.Token;
-import io.github.thugborean.syntax.TokenType;
-import io.github.thugborean.vm.symbol.ValType;
+import io.github.thugborean.syntax.*;
 
-/*TODO:
- * Implement associativity in expression parsing
- * implement string declaration
- * Double works in lexer for now but not in parser
- */
 public class Parser {
     public List<Token> tokens;
     public Program program = new Program();
     private int index = 0;
-    private boolean canAbsorb = true; // For stringExpressions
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -43,29 +35,30 @@ public class Parser {
 
     // ExpressionTokens
     public static final Set<TokenType> expressionTokens = Set.of(
-            TokenType.Identifier,
-            TokenType.NumericLiteral,
-            TokenType.DoubleLiteral,
-
-            TokenType.Plus,
-            TokenType.Minus,
-            TokenType.Multiply,
-            TokenType.Divide,
-            TokenType.Modulo,
-
-            TokenType.ParenthesesOpen,
-            TokenType.ParenthesesClosed,
-
-            TokenType.NullLiteral);
-
-    public static final Set<TokenType> stringExpressionTokens = Set.of(
         TokenType.Identifier,
-        TokenType.StringLiteral,
+        TokenType.NumericLiteral,
+        TokenType.DoubleLiteral,
         TokenType.CharacterLiteral,
-        TokenType.BooleanLiteral,
+        TokenType.StringLiteral,
+
         TokenType.Plus,
+        TokenType.Minus,
+        TokenType.Multiply,
+        TokenType.Divide,
+        TokenType.Modulo,
+        TokenType.AtseriskAsterisk,
+
+        TokenType.EqualsEquals,
+        TokenType.NotEquals,
+        TokenType.LessThan,
+        TokenType.LessThanOrEquals,
+        TokenType.GreaterThan,
+        TokenType.GreaterThanOrEquals,
+
+        TokenType.ParenthesesOpen,
         TokenType.ParenthesesClosed,
-        TokenType.SemiColon);
+
+        TokenType.NullLiteral);
 
     public static final Set<TokenType> operators = Set.of(
             TokenType.Plus,
@@ -101,22 +94,7 @@ public class Parser {
                     throw new RuntimeException("Parser Error: Identifer must be followed by assignment");
 
                 // THIS IS THE POINT AFTER =
-                NodeExpression initialValue;
-                // LOGIC FOR NUMBER
-                if (type.type == ValType.NUMBER) {
-                    // We have to assume that the next tokens are expression-friendly, otherwise it's over
-                    // This function does all the heavy lifting
-                    initialValue = parseExpression( false);
-                    // LOGIC FOR DOUBLE
-                } else if (type.type == ValType.DOUBLE) {
-                    // We have to assume that the next tokens are expression-friendly, otherwise it's over
-                    // This function does all the heavy lifting
-                    initialValue = parseExpression( false);
-                    // LOGIC FOR STRING
-                } else if (type.type == ValType.STRING) {
-                    initialValue = parseStringExpression(false);
-                } else
-                    throw new RuntimeException("Parser Error: Unrecognized type!");
+                NodeExpression initialValue = parseExpression(false);
 
                 // Create the initial assignment value
                 NodeAssignStatement assignment = new NodeAssignStatement(identifier.lexeme, initialValue);
@@ -128,13 +106,20 @@ public class Parser {
                 // DIFFERENT OUTCOMES WITH IDENTIFIER
             } else if (peek().tokenType == TokenType.Identifier) {
                 switch (peek(1).tokenType) {
-                    // Assignment
                     case TokenType.Assign: {
-                        // String identifier = peek().lexeme;
+                        // Get the identifier and advance
+                        String identifier = peek().lexeme;
+                        advance();
+
+                        // Go past the =
+                        advance();
                         
-                        // NodeExpression assignedValue = parseExpression(tokens, false);
+                        // Assume there is not ()
+                        NodeExpression assignment = parseExpression(false);
+
+                        // Add NodeAssignstatement with given identifier and assignment
+                        program.addNode(new NodeAssignStatement(identifier, assignment));
                     }
-                        // Appending
                     case TokenType.Append:
                         // Truncating
                     case TokenType.Truncate:
@@ -166,7 +151,7 @@ public class Parser {
                 advance();
 
                 // Parse the expression
-                NodeStringExpression printable = parseStringExpression(true);
+                NodeExpression printable = parseExpression(true);
                 program.addNode(new NodePrintStatement(printable));
                 endStatement();
             }
@@ -198,90 +183,7 @@ public class Parser {
         return expressionTokens.contains(tokenType) ? true : false;
     }
 
-    private boolean isStringExpressionToken(TokenType tokenType) {
-        return stringExpressionTokens.contains(tokenType) ? true : false;
-    }
-
-
-    // For now only single strings!!!!!!
-    private NodeStringExpression parseStringExpression(boolean insideParentheses) {
-        List<NodeExpression> stringElements = new ArrayList<>();
-        NodeStringExpression result;
-        boolean willLoop = true;
-        // We will only allow StringLiterals. CharLiterals, NumberLiterals, DoubleLiterals and Identifiers
-        while (willLoop) {
-            Token currentToken = peek();
-            if(!isStringExpressionToken(currentToken.tokenType))
-                throw new RuntimeException("Parser Error: Unrecognized token: " + currentToken.lexeme + " in string expression");
-            else {
-                switch(currentToken.tokenType) {
-                    case TokenType.Identifier: {
-                        check();
-                        stringElements.add(new NodeVariableReference(currentToken.lexeme));
-                        canAbsorb = false;
-                        advance();
-                        break;
-                    }
-                    case TokenType.NumericLiteral: {
-                        check();
-                        stringElements.add(new NodeNumericLiteral(currentToken));
-                        canAbsorb = false;
-                        advance();
-                        break;
-                    }
-                    case TokenType.DoubleLiteral: {
-                        check();
-                        stringElements.add(new NodeDoubleLiteral(currentToken));
-                        canAbsorb = false;
-                        advance();
-                        break;
-                    }
-                    case TokenType.StringLiteral: {
-                        check();
-                        stringElements.add(new NodeStringLiteral(currentToken));
-                        canAbsorb = false;
-                        advance();
-                        break;
-                    }
-                    case TokenType.CharacterLiteral: { 
-                        throw new RuntimeException("Unimplemented type Character TODO!");
-                    }
-                    case TokenType.BooleanLiteral: {
-                        throw new RuntimeException("Unimplemented type Boolean TODO!");
-                    }
-                    case TokenType.Plus: {
-                        if(canAbsorb) throw new RuntimeException("Parser Error: Mismatched '+' in string expression");
-                            canAbsorb = true;
-                            advance();
-                            break;
-                    }
-                    case TokenType.ParenthesesClosed: {
-                        if(insideParentheses) {
-                            if(canAbsorb) throw new RuntimeException("Parser Error: Mismatched '+' in string expression");
-                            advance();
-                            willLoop = false;
-                            break;
-                        } else throw new RuntimeException("Parser Error: Delete ')' inside string expression");
-                    }
-                    case TokenType.SemiColon: {
-                        if(!insideParentheses) {
-                            willLoop = false;
-                            break;
-                        } else throw new RuntimeException("Parser Error: ')' expected to close string expression");
-                    }
-                    default: throw new RuntimeException("Parser Error: This should not happen, there's an error parseStringExpression");
-                }
-            }
-        }
-        canAbsorb = true;
-        result = new NodeStringExpression(stringElements);
-        return result;
-    }
-
-    private void check() {
-        if(!canAbsorb) throw new RuntimeException("Parser Error: Mismatched '+' in string expression");
-    }
-
+    // This method will from now on be used to parse ALL expressions, typechecker will enforce correctness
     private NodeExpression parseExpression(boolean insideParentheses) {
         List<Token> expressionTokens = new ArrayList<>();
         NodeExpression result;
@@ -323,25 +225,13 @@ public class Parser {
         // Check if the expression is empty
         if (expressionTokens.isEmpty())
             throw new RuntimeException("Parser Error: Empty expression");
-        // If it's just a single value, return that value
-        else if (expressionTokens.size() == 1) {
-            Token token = expressionTokens.get(0);
-            if (token.tokenType == TokenType.Identifier) {
-                return new NodeVariableReference(token.lexeme);
-            } else if (token.tokenType == TokenType.NumericLiteral) {
-                return new NodeNumericLiteral(token);
-            } else if (token.tokenType == TokenType.DoubleLiteral) {
-                return new NodeDoubleLiteral(token);
-            } else if (token.tokenType == TokenType.NullLiteral) { // This is if the expression is null;
-                return new NodeNullLiteral(token);
-            } else
-                throw new RuntimeException("Parser Error: Unexpected token type in expression: " + token.tokenType);
-        } else {
-            // RPN
-            List<Token> solvingStack = shuntingYard(expressionTokens);
-            // Create AST from RPN
-            result = createNodeExpressionAST(solvingStack);
-        }
+        
+        // We will use shuntingyard to turn the expression into RPN
+        // RPN
+        List<Token> solvingStack = shuntingYard(expressionTokens);
+        // Create AST from RPN
+        result = createNodeExpressionAST(solvingStack);
+        
         return result;
     }
 
@@ -369,8 +259,8 @@ public class Parser {
                 // It should always get to this point if it works and if it doesn't it SHOULD
                 // throw an error before we get to this point
                 holdingStack.pop(); // Remove the open parentheses
-                // OPERATOR LOGIC -----------------------------------------------------------
-                // Check if it is an operator
+            // OPERATOR LOGIC -----------------------------------------------------------
+            // Check if it is an operator
             } else if (operators.contains(token.tokenType)) {
                 // While the stack is not empty and the current top operator has a lesser
                 // precedence than the token operator
@@ -380,21 +270,14 @@ public class Parser {
                     output.add(holdingStack.pop());
                 }
                 holdingStack.push(token);
-                // IDENTIFIER LOGIC ---------------------------------------------------------
-            } else if (token.tokenType == TokenType.Identifier) {
-                output.add(token);
-            }
-            // NUMERICAL LOGIC ----------------------------------------------------------
-            // If it's a numeric value add it to the ouput
-            else
-                output.add(token);
+            // LITERAL AND IDENTIFIER LOGIC ----------------------------------------------
+            } else output.add(token);
         }
         // Add the rest of the operators to the output
         while (!holdingStack.holdingCell.isEmpty()) {
             Token op = holdingStack.pop();
-            if (op.tokenType == TokenType.ParenthesesOpen || op.tokenType == TokenType.ParenthesesClosed) {
+            if (op.tokenType == TokenType.ParenthesesOpen || op.tokenType == TokenType.ParenthesesClosed)
                 throw new RuntimeException("Parser Error: Mismatched parentheses");
-            }
             output.add(op);
         }
         return output;
@@ -409,6 +292,12 @@ public class Parser {
                 stack.push(new NodeNumericLiteral(token));
             } else if (token.tokenType == TokenType.DoubleLiteral) {
                 stack.push(new NodeDoubleLiteral(token));
+            } else if (token.tokenType == TokenType.StringLiteral) {
+                stack.push(new NodeStringLiteral(token));
+            } else if (token.tokenType == TokenType.CharacterLiteral) {
+                throw new RuntimeException("Char is unimplemented!");
+            } else if (token.tokenType == TokenType.BooleanLiteral) {
+                throw new RuntimeException("Bool is unimplemented!");
             } else if (operators.contains(token.tokenType)) {
                 if (stack.size() < 2) {
                     throw new RuntimeException("Parser Error: Not enough operands for operator: " + token.lexeme);
@@ -445,7 +334,7 @@ public class Parser {
 
     private void endStatement() {
         if (peek().tokenType != TokenType.SemiColon)
-            throw new RuntimeException("Parser Error: ';' expected after expression");
+            throw new RuntimeException("Parser Error: ';' needed to end statement");
         else advance();
     }
 

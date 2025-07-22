@@ -5,6 +5,7 @@ import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
 import io.github.thugborean.ast.node.types.NodeType;
+import io.github.thugborean.vm.symbol.ValType;
 
 public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     private int indentLevel = 0;
@@ -32,7 +33,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     }
 
     @Override
-    public Void visitNodeBinaryExpression(NodeBinaryExpression node) {
+    public Void visitNodeBinaryExpression(NodeBinaryExpression node, ValType type) {
         line("op: " + node.operator.lexeme);
         indentLevel++;
 
@@ -51,7 +52,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     }
 
     @Override
-    public Void visitUnaryExpression(NodeUnaryExpression node) {
+    public Void visitUnaryExpression(NodeUnaryExpression node, ValType type) {
         line("op: " + node.operator.lexeme);
         indentLevel++;
 
@@ -154,21 +155,11 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
 
     @Override
     public Void visitNodeIncrement(NodeIncrement nodeIncrement) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeIncrement'");
     }
 
     @Override
     public Void visitNodeDecrement(NodeDecrement node) {
-        // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
-    }
-
-    @Override
-    public Void visitStringExpression(NodeStringExpression node) {
-        for(NodeExpression n : node.stringElements) {
-            line(n.toString());
-        }
-        return null;
     }
 }

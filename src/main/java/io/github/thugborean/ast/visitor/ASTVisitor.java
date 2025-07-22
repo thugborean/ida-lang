@@ -5,6 +5,7 @@ import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
 import io.github.thugborean.ast.node.types.*;
+import io.github.thugborean.vm.symbol.ValType;
 
 public interface ASTVisitor<T> {
 
@@ -19,13 +20,12 @@ public interface ASTVisitor<T> {
     // T visitNodeBooleanLiteral(NodeBooleanLiteral node);
     T visitNodeNullLiteral(NodeNullLiteral node);
     // Arithmetic Expressions
-    T visitNodeBinaryExpression(NodeBinaryExpression node);
-    T visitUnaryExpression(NodeUnaryExpression node);
+    T visitNodeBinaryExpression(NodeBinaryExpression node, ValType type);
+    T visitUnaryExpression(NodeUnaryExpression node, ValType type);
     T visitNodeVariableReference(NodeVariableReference node);
     // Stand-alone expressions
     T visitNodeIncrement(NodeIncrement node);
     T visitNodeDecrement(NodeDecrement node);
-    T visitStringExpression(NodeStringExpression node);
     // Visiting NodeStatement
     T visitNodeVariableDeclaration(NodeVariableDeclaration node);
     T visitExpressionStatement(NodeExpressionStatement node);
