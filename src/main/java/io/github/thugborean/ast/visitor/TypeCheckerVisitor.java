@@ -1,5 +1,7 @@
 package io.github.thugborean.ast.visitor;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -17,9 +19,19 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     // Create the logger and give it the class' name
     private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
     private final Map<String, ValType> symbolTable = new HashMap<>();
+    private final Deque<ValType> expectedTypes = new ArrayDeque<>();
     private final Set<ValType> reugularExpressionTypes = Set.of(
         ValType.NUMBER,
         ValType.DOUBLE
+    );
+    private final Map<String, Set<ValType>> binaryOperatorRules = Map.of(
+        "+", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING),
+        "-", Set.of(ValType.NUMBER, ValType.DOUBLE),
+        "*", Set.of(ValType.NUMBER, ValType.DOUBLE),
+        "/", Set.of(ValType.NUMBER, ValType.DOUBLE),
+        "%", Set.of(ValType.NUMBER, ValType.DOUBLE),
+        "-", Set.of(ValType.NUMBER, ValType.DOUBLE),
+        "==", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)
     );
 
     @Override
@@ -120,20 +132,14 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     private boolean isAssignable(ValType declared, ValType actual) {
         if(declared == actual) return true;
-        // Assigning a Double to a Number
-        if(declared == ValType.NUMBER && actual == ValType.DOUBLE) return false;
-        if(declared == ValType.NUMBER && actual == ValType.STRING) return false;
-        // Assigning a Number to a double 
-        if(declared == ValType.DOUBLE && actual == ValType.NUMBER) return true;
-        // Assigning a String to a Character
-        if(declared == ValType.CHARACTER && actual == ValType.STRING) return false;
-        // Assigning a Character to a String
         if(declared == ValType.STRING && actual == ValType.CHARACTER) return true;
-        if(declared == ValType.STRING && actual == ValType.NUMBER) return false;
-        if(declared == ValType.STRING && actual == ValType.DOUBLE) return false;
-        // Assigning Null to anything
-        if(actual == ValType.NULL) return true;
+        if(declared == ValType.STRING && (actual == ValType.NUMBER || actual == ValType.DOUBLE)) return false;
+        if(declared == ValType.NUMBER && actual == ValType.DOUBLE) return false;
+        if(declared == ValType.DOUBLE && actual == ValType.NUMBER) return true; // Is allowed 
+        return false;
+    }
 
+    private boolean isValidInExpression(String operator, ValType type) {
         return false;
     }
 

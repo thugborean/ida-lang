@@ -66,7 +66,7 @@ public class Value {
         } else if(value instanceof Character) {
             return ValType.CHARACTER;
         } else if(value instanceof Boolean) {
-            return ValType.BOOL;
+            return ValType.BOOLEAN;
         } else return ValType.NULL;
     }
 }

@@ -5,7 +5,7 @@ public enum ValType {
     DOUBLE,
     STRING,
     CHARACTER,
-    BOOL,
+    BOOLEAN,
 
     NULL,
     VOID,
