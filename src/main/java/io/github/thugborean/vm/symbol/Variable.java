@@ -1,6 +1,6 @@
 package io.github.thugborean.vm.symbol;
 
-public class Variable {
+public class Variable implements Symbol{
 
     private final ValType type;
     private Value value;
@@ -18,5 +18,9 @@ public class Variable {
         if(value != null)
             return value;
         else return null;
+    }
+
+    public void setValue(Value value) {
+        this.value = value;
     }
 }

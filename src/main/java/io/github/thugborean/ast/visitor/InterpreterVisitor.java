@@ -83,7 +83,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         String identifier = node.identifier.lexeme;
         // Adding the variable to the table with null as a default first before assigning it
         logger.info("Adding Variable identifier to envirionment: " + identifier);
-        environment.defineVariable(identifier, new Variable(node.type.type, null));
+        environment.declareVariable(identifier, new Variable(node.type.type, null));
         // Assign the variable with the given intializer
         logger.info("Assigning Variable with given initializer...");
         node.initializer.accept(this);

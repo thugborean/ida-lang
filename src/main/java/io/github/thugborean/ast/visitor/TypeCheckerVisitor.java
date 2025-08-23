@@ -24,13 +24,13 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         ValType.NUMBER,
         ValType.DOUBLE
     );
+
     private final Map<String, Set<ValType>> binaryOperatorRules = Map.of(
         "+", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING),
         "-", Set.of(ValType.NUMBER, ValType.DOUBLE),
         "*", Set.of(ValType.NUMBER, ValType.DOUBLE),
         "/", Set.of(ValType.NUMBER, ValType.DOUBLE),
         "%", Set.of(ValType.NUMBER, ValType.DOUBLE),
-        "-", Set.of(ValType.NUMBER, ValType.DOUBLE),
         "==", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)
     );
 

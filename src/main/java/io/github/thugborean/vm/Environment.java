@@ -3,25 +3,29 @@ package io.github.thugborean.vm;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.github.thugborean.vm.symbol.Symbol;
-import io.github.thugborean.vm.symbol.Variable;
+import io.github.thugborean.vm.symbol.*;
 
 public class Environment {
-    // private Environment subEnv;
-    private final Map<String, Variable> variables = new HashMap<>();
-    // private final Map<String, Function> functions = new HashMap<>();
-    // private final Map<String, Structure> structures = new HashMap<>();
+    private final Environment parentEnv;
+    private final SymbolTable symbolTable;
+    private final int scopeLevel;
 
-    // Method used for retrieving the variable from the environment
-    public Variable getVariable(String identifier) {
-        Variable var = variables.get(identifier);
-        if(var == null) throw new RuntimeException("Unknown Symbol: " + identifier);
-        return var;
+    private final Map<String, Variable> variables = new HashMap<>();
+
+
+    public Environment(Environment parentEnv, SymbolTable symbolTable, int scopeLevel) {
+        this.parentEnv = parentEnv;
+        this.symbolTable = symbolTable;
+        this.scopeLevel = scopeLevel;
     }
 
-    public void defineVariable(String identifier, Variable variable) {
-        if(variables.containsKey(identifier)) throw new RuntimeException("Duplicate identifiers!");
-        variables.put(identifier, variable);
+    // Method used for retrieving the variable from the symbolTable
+    public Variable getVariable(String identifier) {
+        return symbolTable.getVariable(identifier, scopeLevel);
+    }
+
+    public void declareVariable(String identifier, Variable variable) {
+        symbolTable.declare(identifier, variable);
     }
 
     public void assignVariable(String identifier, Variable variable) {
@@ -33,47 +37,5 @@ public class Environment {
     public boolean variableExists(String identifier) {
         if(variables.containsKey(identifier)) return true;
             else return false;
-    }
-}
-
-
-// These can stay unimplemented for now...
-class Function implements Symbol {
-    private final String type;
-    private Object value;
-
-    public Function(String type, Object value) {
-        this.type = type;
-        this.value = value;
-    }
-
-    @Override
-    public String getType() {
-        return type;
-    }
-
-    @Override
-    public Object getvalue() {
-        return value;
-    }
-
-}
-class Structure implements Symbol {
-    private final String type;
-    private Object value;
-    
-    public Structure(String type, Object value) {
-        this.type = type;
-        this.value = value;
-    }
-
-    @Override
-    public String getType() {
-        return type;
-    }
-
-    @Override
-    public Object getvalue() {
-        return value;
     }
 }
