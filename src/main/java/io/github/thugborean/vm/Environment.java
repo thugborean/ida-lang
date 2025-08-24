@@ -1,17 +1,11 @@
 package io.github.thugborean.vm;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import io.github.thugborean.vm.symbol.*;
 
 public class Environment {
     private final Environment parentEnv;
     private final SymbolTable symbolTable;
     private final int scopeLevel;
-
-    private final Map<String, Variable> variables = new HashMap<>();
-
 
     public Environment(Environment parentEnv, SymbolTable symbolTable, int scopeLevel) {
         this.parentEnv = parentEnv;
@@ -28,14 +22,11 @@ public class Environment {
         symbolTable.declare(identifier, variable);
     }
 
-    public void assignVariable(String identifier, Variable variable) {
-        if(variables.containsKey(identifier)) variables.put(identifier, variable);
-            else throw new RuntimeException("Cannot assign to unknown Symbol: " + identifier + " the value of: " + variable.getvalue());
+    public void assignVariable(String identifier, Value value) {
+        symbolTable.setVariable(identifier, value, scopeLevel);
     }
 
-    // ???
     public boolean variableExists(String identifier) {
-        if(variables.containsKey(identifier)) return true;
-            else return false;
+        return symbolTable.symbolExists(identifier);
     }
 }

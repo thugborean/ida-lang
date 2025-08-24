@@ -1,22 +1,31 @@
 package io.github.thugborean.vm.symbol;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Map;
+import java.util.Deque;
+import java.util.HashMap;
 
 // This class is responsible for storing all the variables in all of the environments
 public class SymbolTable {
-    private final List<Entry> entries = new ArrayList<>();
+    private final Map<String, Deque<Entry>> table = new HashMap<>();
     private int currentScope = 0;
 
     public void declare(String identifier, Symbol symbol) {
-        entries.add(new Entry(identifier, symbol, currentScope));
+        table.computeIfAbsent(identifier, k -> new ArrayDeque<>())
+        .push(new Entry(identifier, symbol, currentScope));
     }
 
-    public Entry lookup(String name) {
-        return entries.stream()
-            .filter(e -> e.identifier.equals(name))
-            .reduce((first, second) -> second) // Pick the one in the innermost scope
-            .orElseThrow(() -> new RuntimeException("Unknown variable: " + name));
+    public Entry lookup(String identifier) {
+        Deque<Entry> stack = table.get(identifier);
+        if (stack == null || stack.isEmpty()) {
+            throw new RuntimeException("Unknown variable: " + identifier);
+        }
+        return stack.peek(); // always the innermost scope
+    }
+
+    public boolean symbolExists(String identifier) {
+        Deque<Entry> stack = table.get(identifier);
+        return stack != null && !stack.isEmpty();
     }
 
     public void setVariable(String identifier, Value value, int scopeLevel) {
@@ -41,11 +50,16 @@ public class SymbolTable {
     public void enterScope() {currentScope++;}
 
     public void exitScope() {
-        // Removes all entries when exiting the current level
-        entries.removeIf(e -> e.scopeLevel == currentScope);
+        // Remove all entries in this scope
+        for (Deque<Entry> stack : table.values()) {
+            while (!stack.isEmpty() && stack.peek().scopeLevel == currentScope) {
+                stack.pop();
+            }
+        }
         currentScope--;
     }
 }
+
 
 class Entry {
     public String identifier;

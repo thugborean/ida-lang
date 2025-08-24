@@ -140,7 +140,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
             } else finalValue = new Value(raw);
         }
         // Finally assign the variable
-        environment.assignVariable(identifier, new Variable(type, finalValue));
+        environment.assignVariable(identifier, finalValue);
         logger.info("Finished assigning Variable: " + identifier);
         return null;
     }
