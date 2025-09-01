@@ -1,18 +1,23 @@
 package io.github.thugborean.vm.symbol;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Map;
+
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 
 // This class is responsible for storing all the variables in all of the environments
 public class SymbolTable {
     private final Map<String, Deque<Entry>> table = new HashMap<>();
+    private final Deque<List<String>> scopeStack = new ArrayDeque<>();
     private int currentScope = 0;
 
     public void declare(String identifier, Symbol symbol) {
         table.computeIfAbsent(identifier, k -> new ArrayDeque<>())
         .push(new Entry(identifier, symbol, currentScope));
+        scopeStack.peek().add(identifier);
     }
 
     public Entry lookup(String identifier) {
@@ -47,28 +52,30 @@ public class SymbolTable {
         return entry;
     }
 
-    public void enterScope() {currentScope++;}
+    public void enterScope() {
+        scopeStack.push(new ArrayList<>());
+        currentScope++;
+    }
 
     public void exitScope() {
         // Remove all entries in this scope
-        for (Deque<Entry> stack : table.values()) {
-            while (!stack.isEmpty() && stack.peek().scopeLevel == currentScope) {
-                stack.pop();
+        for (String name : scopeStack.pop()) {
+            Deque<Entry> stack = table.get(name);
+            stack.pop();
+            if (stack.isEmpty()) {
+                table.remove(name);
             }
         }
         currentScope--;
     }
-}
 
-
-class Entry {
-    public String identifier;
-    public Symbol symbol; // Can be either variable, function or struct -- WIP
-    public int scopeLevel;
-
-    public Entry(String identifier, Symbol symbol, int scopeLevel) {
-        this.identifier = identifier;
-        this.symbol = symbol;
-        this.scopeLevel = scopeLevel;
+    // I'm so sorry for this function...
+    @Override
+    public String toString() {
+        StringBuilder sB = new StringBuilder();
+        for(Map.Entry<String, Deque<Entry>> entries : table.entrySet()) {
+            for(Entry entry : entries.getValue()) sB.append(String.format("Identifier %s, Type %s", entry.identifier, entry.symbol.getType()));
+        }
+        return sB.toString();
     }
 }

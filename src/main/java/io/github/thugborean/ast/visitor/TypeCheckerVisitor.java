@@ -13,16 +13,29 @@ import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
 import io.github.thugborean.ast.node.types.*;
 import io.github.thugborean.logging.LoggingManager;
-import io.github.thugborean.vm.symbol.ValType;
+import io.github.thugborean.vm.Environment;
+import io.github.thugborean.vm.symbol.*;
 
 public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     // Create the logger and give it the class' name
     private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
-    private final Map<String, ValType> symbolTable = new HashMap<>();
     private final Deque<ValType> expectedTypes = new ArrayDeque<>();
+    private SymbolTable symbolTable = new SymbolTable();
+    private Environment environment;
+
+    public TypeCheckerVisitor(Environment environment) {
+        this.environment = environment;
+    }
+
     private final Set<ValType> reugularExpressionTypes = Set.of(
         ValType.NUMBER,
         ValType.DOUBLE
+    );
+
+    // Types of literals that can be present within string expressions
+    private final Set<ValType> stringExpressionTypes = Set.of(
+        ValType.STRING,
+        ValType.CHARACTER
     );
 
     private final Map<String, Set<ValType>> binaryOperatorRules = Map.of(
@@ -43,9 +56,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         logger.info("Finished TypeChecking Program!");
         logger.info("Complete Symbol Table...");
         logger.info("##################################################");
-        for(Map.Entry<String, ValType> entry : symbolTable.entrySet()) {
-            logger.info(String.format("Identifier %-15s, Type: %-10s", entry.getKey(), entry.getValue()));
-        }
+        logger.info(symbolTable.toString());
         logger.info("##################################################");
     }
 
@@ -53,14 +64,34 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     public ValType visitNodeBinaryExpression(NodeBinaryExpression node, ValType type) {
         ValType lhs = node.leftHandSide.accept(this);
         ValType rhs = node.rightHandSide.accept(this);
-        logger.info(String.format("Checking Binary Expression, types %s, %s", lhs, rhs));
-        if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) {
-            logger.severe(String.format("Illegal type in numeric expression: %s + %s!", lhs, rhs));
-            throw new RuntimeException(String.format("Illegal type in numeric expression: %s + %s!", lhs, rhs));
+        String operator = node.operator.lexeme;
+        // Does an overall check for rules regarding the binary operator
+        if(!(binaryOperatorRules.get(operator).contains(lhs)) || !(binaryOperatorRules.get(operator).contains(rhs))) {
+            logger.severe(String.format("Operator %s does not support operands %s and %s", operator, lhs, rhs));
+            throw new RuntimeException(String.format("Operator %s does not support operands %s and %s", operator, lhs, rhs));
         }
-        // If at least one of the sides are decimal then we're dealing with a Double
-        if(lhs == ValType.DOUBLE || rhs == ValType.DOUBLE) return ValType.DOUBLE;
+        logger.info(String.format("Checking Binary Expression, types %s, %s", lhs, rhs));
+        // This means we're dealing with an arithmetic expression
+        if(expectedTypes.peek() == ValType.NUMBER || expectedTypes.peek() == ValType.DOUBLE) {
+            if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) {
+                logger.severe(String.format("Illegal type in arithmetic expression: %s and %s!", lhs, rhs));
+                throw new RuntimeException(String.format("Illegal type in arithmetic expression: %s and %s!", lhs, rhs));
+            }
+            // If at least one of the sides are decimal then we're dealing with a Double
+            if(lhs == ValType.DOUBLE || rhs == ValType.DOUBLE) return ValType.DOUBLE;
             else return ValType.NUMBER;
+        }
+        // This means we're dealing with a string expression
+        else if(expectedTypes.peek() == ValType.STRING) {
+            // We want to enforce rules on literal values but not variable references
+            if(node.leftHandSide instanceof NodeLiteral && !stringExpressionTypes.contains(lhs)) {
+                logger.severe(String.format("Illegal literal in string expression: %s + %s", lhs, rhs));
+                throw new RuntimeException(String.format("Illegal literal in string expression: %s + %s", lhs, rhs));
+            }
+            return ValType.STRING;
+        }
+
+        return ValType.NULL;
     }
 
     @Override
@@ -71,36 +102,42 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodeVariableReference(NodeVariableReference node) {
         logger.info("Checking if Symbol is present: " + node.identifier);
-        if(symbolTable.containsKey(node.identifier)) return symbolTable.get(node.identifier);
-            else throw new RuntimeException("Unrecognized Symbol: " + node.identifier);
+        if(!symbolTable.symbolExists(node.identifier)) throw new RuntimeException("Unrecognized symbol " + node.identifier);
+        return symbolTable.get(node.identifier, environment.scopeLevel).symbol.getType();
     }
 
     @Override
     public ValType visitNodeVariableDeclaration(NodeVariableDeclaration node) {
         logger.info("Checking a variable declaration...");
-        symbolTable.put(node.identifier.lexeme, node.type.type);
+        symbolTable.declare(node.identifier.lexeme, new Variable(node.type.type, null));
         logger.info("Variable identifier is: " + node.identifier.lexeme);
 
+        // This is the type we are expecting
         ValType declaredType = node.type.type;
+        expectedTypes.offerFirst(declaredType);
+
         logger.info("Variable type is " + node.type.type);
 
         // Check if the assignment matches the type
         logger.info("Checking if initializer is type-compatible...");
         ValType initType = node.initializer.accept(this);
-
         logger.info(String.format("Type: %s is compatible with initializer: %s", declaredType, initType));
+        // Remove the expected type from the context
+        expectedTypes.pollFirst();
         return node.type.type;
     }
 
     @Override
     public ValType visitExpressionStatement(NodeExpressionStatement node) {
+        // WIP
         node.accept(this);
         return null;
     }
 
     @Override
     public ValType visitAssignStatement(NodeAssignStatement node) {
-        ValType type = symbolTable.get(node.identifier);
+        ValType type = symbolTable.get(node.identifier, environment.scopeLevel).symbol.getType();
+        // Check if the value we are assigning can be assigned to the current type
         if(!isAssignable(type, node.assignedValue.accept(this))) {
             logger.severe(String.format("Found illegal assignment: %s != %s", type, node.assignedValue.accept(this)));
             throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.assignedValue.accept(this));

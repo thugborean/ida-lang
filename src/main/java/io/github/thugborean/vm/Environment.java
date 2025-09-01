@@ -5,7 +5,7 @@ import io.github.thugborean.vm.symbol.*;
 public class Environment {
     private final Environment parentEnv;
     private final SymbolTable symbolTable;
-    private final int scopeLevel;
+    public final int scopeLevel;
 
     public Environment(Environment parentEnv, SymbolTable symbolTable, int scopeLevel) {
         this.parentEnv = parentEnv;

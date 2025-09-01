@@ -11,10 +11,7 @@ public class VM {
     private Lexer lexer = new Lexer();
     private Parser parser;
     private Program program;
-    private final SymbolTable symbolTable = new SymbolTable();
 
-    // Top environment, level 0
-    public final Environment environment = new Environment(null, symbolTable, 0);
 
     public void execute(String source) {
         parser = new Parser(lexer.tokenize(source));
@@ -23,12 +20,19 @@ public class VM {
     }
 
     // This is the method that runs the logic
+    // Each face will use its own symboltable and environments
     public void run(Program program) {
         // Check for types
-        TypeCheckerVisitor typechecker = new TypeCheckerVisitor();
+        SymbolTable symbolTable = new SymbolTable();
+        Environment topEnv = new Environment(null, symbolTable, 0);
+        TypeCheckerVisitor typechecker = new TypeCheckerVisitor(topEnv);
         typechecker.walkTree(program);
+
         // Implement logic
-        InterpreterVisitor interpreter = new InterpreterVisitor(environment);
+        // Discard the typecheckers table and environment, because I can't be bothered
+        topEnv = new Environment(null, symbolTable, 0);
+        typechecker = new TypeCheckerVisitor(topEnv);
+        InterpreterVisitor interpreter = new InterpreterVisitor(topEnv);
         interpreter.walkTree(program);
     }
 }

@@ -16,7 +16,6 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     private Environment environment;
     private final static Logger logger = LoggingManager.getLogger(InterpreterVisitor.class);
 
-
     public InterpreterVisitor(Environment environment) {
         this.environment = environment;
     }
