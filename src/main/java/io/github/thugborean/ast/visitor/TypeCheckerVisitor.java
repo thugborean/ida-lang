@@ -53,10 +53,6 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             statement.accept(this);
         }
         logger.info("Finished TypeChecking Program!");
-        logger.info("Complete Symbol Table...");
-        logger.info("##################################################");
-        logger.info(symbolTable.toString());
-        logger.info("##################################################");
     }
 
     @Override

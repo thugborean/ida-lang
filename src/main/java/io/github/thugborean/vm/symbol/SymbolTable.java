@@ -10,7 +10,7 @@ import java.util.List;
 
 // This class is responsible for storing all the variables in all of the environments
 public class SymbolTable {
-    private final Map<String, Deque<Entry>> table = new HashMap<>();
+    public final Map<String, Deque<Entry>> table = new HashMap<>();
     private final Deque<List<String>> scopeStack = new ArrayDeque<>();
     private int currentScope = 0;
 
@@ -78,7 +78,7 @@ public class SymbolTable {
     public String toString() {
         StringBuilder sB = new StringBuilder();
         for(Map.Entry<String, Deque<Entry>> entries : table.entrySet()) {
-            for(Entry entry : entries.getValue()) sB.append(String.format("Identifier %s, Type %s", entry.identifier, entry.symbol.getType()));
+            for(Entry entry : entries.getValue()) sB.append(String.format("Identifier %s, Type %s", entry.identifier, entry.symbol.getType())).append("\n");
         }
         return sB.toString();
     }
