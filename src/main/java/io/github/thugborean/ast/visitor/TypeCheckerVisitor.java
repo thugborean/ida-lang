@@ -108,7 +108,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     @Override
     public ValType visitNodeVariableDeclaration(NodeVariableDeclaration node) {
-        logger.info("Checking a variable declaration...");
+        logger.info("Checking a Variable declaration...");
         symbolTable.declare(node.identifier.lexeme, new Variable(node.type.type, null));
         logger.info("Variable identifier is: " + node.identifier.lexeme);
 

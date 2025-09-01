@@ -189,7 +189,7 @@ public class Lexer {
                 throw new RuntimeException("Lexer Error: Unexpected symbol during lexing: " + peek());
         }
         // Add EOF token
-        tokens.add(new Token(TokenType.EOF, null, "This is it! This is it!", line)); // The Khayembii Communique - The Death Of An Aspiring Icon
+        tokens.add(new Token(TokenType.EOF, null, "This is it!", line)); // The Khayembii Communique - The Death Of An Aspiring Icon
         return tokens;
     }
 

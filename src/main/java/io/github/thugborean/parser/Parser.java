@@ -86,12 +86,9 @@ public class Parser {
                 Token identifier = peek(); // Maybe some checks are needed to see if its valid ???
                 advance();
 
-                // Check if the current token is Assign, if not throw error, variables must be
-                // initialized upon declaration
-                if (peek().tokenType == TokenType.Assign)
-                    advance();
-                else
-                    throw new RuntimeException("Parser Error: Identifer must be followed by assignment");
+                // Check if the current token is Assign, if not throw error, variables must be initialized upon declaration
+                if (peek().tokenType == TokenType.Assign) advance();
+                    else throw new RuntimeException("Parser Error: Identifer must be followed by assignment");
 
                 // THIS IS THE POINT AFTER =
                 NodeExpression initialValue = parseExpression(false);
@@ -111,14 +108,16 @@ public class Parser {
                         String identifier = peek().lexeme;
                         advance();
 
-                        // Go past the =
-                        advance();
-                        
+                        // Check if the current token is Assign, if not throw error, variables must be initialized upon declaration
+                        if (peek().tokenType == TokenType.Assign) advance();
+                            else throw new RuntimeException("Parser Error: Identifer must be followed by assignment");
+
                         // Assume there is not ()
                         NodeExpression assignment = parseExpression(false);
-
+ 
                         // Add NodeAssignstatement with given identifier and assignment
                         program.addNode(new NodeAssignStatement(identifier, assignment));
+                        break;
                     }
                     case TokenType.Append:
                         // Truncating
