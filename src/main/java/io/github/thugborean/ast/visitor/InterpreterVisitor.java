@@ -1,6 +1,7 @@
 package io.github.thugborean.ast.visitor;
 
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
@@ -33,36 +34,43 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     public Value visitNodeBinaryExpression(NodeBinaryExpression node, ValType type) {
         Value left = (Value)node.leftHandSide.accept(this);
         Value right = (Value)node.rightHandSide.accept(this);
-        // Determine the operator
-        // Number and Double are the only types allowed in this expression
-        logger.info(String.format("Performing arithmetic: %s %s %s", left, node.operator.lexeme, right));
-        switch (node.operator.tokenType) {
-            case TokenType.Plus: {
-                return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) +
-                        (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+
+        if(node.resolvedType == ValType.NUMBER || node.resolvedType == ValType.DOUBLE) {
+            logger.info(String.format("Performing arithmetic: %s %s %s", left, node.operator.lexeme, right));
+            switch (node.operator.tokenType) {
+                case TokenType.Plus: {
+                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) +
+                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                }
+                case TokenType.Minus: {
+                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) -
+                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                }
+                case TokenType.Multiply: {
+                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) *
+                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                }
+                case TokenType.Divide: {
+                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) /
+                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                }
+                case TokenType.Modulo: {
+                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) %
+                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                }
+                default: {
+                    logger.severe("Unknown operator " + node.operator.lexeme);
+                    throw new RuntimeException("Interpreter Error: Couldn't find operator for expression!");
+                }
             }
-            case TokenType.Minus: {
-                return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) -
-                        (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
-            }
-            case TokenType.Multiply: {
-                return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) *
-                        (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
-            }
-            case TokenType.Divide: {
-                return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) /
-                        (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
-            }
-            case TokenType.Modulo: {
-                return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) %
-                        (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
-            }
-            default: {
-                logger.severe("Unknown operator " + node.operator.lexeme);
-                throw new RuntimeException("Interpreter Error: Couldn't find operator for expression!");
-            }
-                
+        } else if(node.resolvedType == ValType.STRING) {
+            logger.info(String.format("Performing string concatenation: %s %s %s", left, node.operator.lexeme, right));
+            StringBuilder sB = new StringBuilder();
+            sB.append(left).append(right);
+            return new Value(sB.toString());
         }
+
+        return new Value(null); // This shouldn't happen
     }
 
     @Override

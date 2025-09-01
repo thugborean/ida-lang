@@ -14,6 +14,10 @@ public class SymbolTable {
     private final Deque<List<String>> scopeStack = new ArrayDeque<>();
     private int currentScope = 0;
 
+    public SymbolTable() {
+        scopeStack.push(new ArrayList<>());
+    }
+
     public void declare(String identifier, Symbol symbol) {
         table.computeIfAbsent(identifier, k -> new ArrayDeque<>())
         .push(new Entry(identifier, symbol, currentScope));

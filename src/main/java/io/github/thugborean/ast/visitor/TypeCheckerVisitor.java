@@ -2,7 +2,6 @@ package io.github.thugborean.ast.visitor;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -73,16 +72,21 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         logger.info(String.format("Checking Binary Expression, types %s, %s", lhs, rhs));
         // This means we're dealing with an arithmetic expression
         if(expectedTypes.peek() == ValType.NUMBER || expectedTypes.peek() == ValType.DOUBLE) {
+            node.resolvedType = ValType.NUMBER;
             if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) {
                 logger.severe(String.format("Illegal type in arithmetic expression: %s and %s!", lhs, rhs));
                 throw new RuntimeException(String.format("Illegal type in arithmetic expression: %s and %s!", lhs, rhs));
             }
             // If at least one of the sides are decimal then we're dealing with a Double
-            if(lhs == ValType.DOUBLE || rhs == ValType.DOUBLE) return ValType.DOUBLE;
+            if(lhs == ValType.DOUBLE || rhs == ValType.DOUBLE) {
+                node.resolvedType = ValType.DOUBLE;
+                return ValType.DOUBLE;
+            }
             else return ValType.NUMBER;
         }
         // This means we're dealing with a string expression
         else if(expectedTypes.peek() == ValType.STRING) {
+            node.resolvedType = ValType.STRING;
             // We want to enforce rules on literal values but not variable references
             if(node.leftHandSide instanceof NodeLiteral && !stringExpressionTypes.contains(lhs)) {
                 logger.severe(String.format("Illegal literal in string expression: %s + %s", lhs, rhs));
@@ -173,10 +177,6 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         if(declared == ValType.STRING && (actual == ValType.NUMBER || actual == ValType.DOUBLE)) return false;
         if(declared == ValType.NUMBER && actual == ValType.DOUBLE) return false;
         if(declared == ValType.DOUBLE && actual == ValType.NUMBER) return true; // Is allowed 
-        return false;
-    }
-
-    private boolean isValidInExpression(String operator, ValType type) {
         return false;
     }
 
