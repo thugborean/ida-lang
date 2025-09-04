@@ -9,6 +9,7 @@ import io.github.thugborean.ast.node.statement.*;
 import io.github.thugborean.ast.node.statement.scope.*;
 import io.github.thugborean.logging.LoggingManager;
 import io.github.thugborean.syntax.TokenType;
+import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.VM;
 import io.github.thugborean.vm.symbol.*;
 
@@ -189,11 +190,13 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     @Override
     public Value visitNodeEnterScope(NodeEnterScope node) {
         vm.enterScope();
+        logger.info("Entering scope, level: " + Environment.globalScopeDepth);
         return null;
     }
 
     @Override
     public Value visitNodeExitScope(NodeExitScope node) {
+        logger.info("Exiting scope, level: " + Environment.globalScopeDepth);
         vm.exitScope();
         return null;
     }

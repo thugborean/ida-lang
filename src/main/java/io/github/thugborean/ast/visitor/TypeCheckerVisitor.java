@@ -195,11 +195,13 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodeEnterScope(NodeEnterScope node) {
         vm.enterScope();
+        logger.info("Entering scope, level: " + Environment.globalScopeDepth);
         return null;
     }
 
     @Override
     public ValType visitNodeExitScope(NodeExitScope node) {
+        logger.info("Exiting scope, level: " + Environment.globalScopeDepth);
         vm.exitScope();
         return null;
     }

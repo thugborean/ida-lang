@@ -9,7 +9,8 @@ public class Environment {
     private final Environment parentEnv;
     public final Map<String, Variable> localVariables = new HashMap<>();
     public final int scopeLevel;
-    public static int globalScopeDepth = 0;
+    // This starts out as -1 because the topEnv will make it 0
+    public static int globalScopeDepth = -1;
 
 
     public Environment(Environment parentEnv) {
@@ -55,5 +56,10 @@ public class Environment {
     // The idea is that when we remove this environment from the envStack then we've exited it and it will eventually be garbage collected
     public void close() {
         globalScopeDepth--;
+    }
+
+    // This function is more for documentation purposes than actual necessity
+    public static void resetGlobalScopeLevel() {
+        globalScopeDepth = -1;
     }
 }
