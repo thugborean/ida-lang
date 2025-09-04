@@ -1,10 +1,5 @@
-num a = 3;
+num a = 4;
 {
-    num a = 4;
-    print(a);
-    {
-        num a = 5;
-        print(a);
-    }
+    a = 5;
 }
 print(a);

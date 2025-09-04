@@ -40,13 +40,18 @@ public class Environment {
         localVariables.put(identifier, variable);
     }
 
+    // We need to assign to the Variable in whatever environment it resides in
     public void assignVariable(String identifier, Value value) {
+        Environment currentEnv = this;
         Variable oldVariable;
         if(variableExists(identifier)) oldVariable = getVariable(identifier);
-            else if(parentEnv != null) oldVariable = parentEnv.getVariable(identifier);
+            else if(parentEnv != null) {
+                currentEnv = parentEnv;
+                oldVariable = parentEnv.getVariable(identifier);
+            }
         else throw new RuntimeException("Variable " + identifier + " has not been declared in this scope");
         Variable newVariable = new Variable(oldVariable.getType(), value);
-        localVariables.put(identifier, newVariable);
+        currentEnv.localVariables.put(identifier, newVariable);
     }
 
     public boolean variableExists(String identifier) {

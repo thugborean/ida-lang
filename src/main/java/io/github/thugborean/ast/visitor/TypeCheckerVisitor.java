@@ -121,8 +121,6 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
         // Check if the assignment matches the type
         logger.info("Checking if initializer is type-compatible...");
-        ValType initType = node.initializer.accept(this);
-        logger.info(String.format("Type: %s is compatible with initializer: %s", declaredType, initType));
         // Remove the expected type from the context
         expectedTypes.pollFirst();
         return node.type.type;
@@ -143,6 +141,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             logger.severe(String.format("Found illegal assignment: %s != %s", type, node.assignedValue.accept(this)));
             throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.assignedValue.accept(this));
         }
+        logger.info(String.format("Type: %s is compatible with initializer: %s", type, node.assignedValue.accept(this)));
         return node.assignedValue.accept(this);
     }
 
