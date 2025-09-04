@@ -66,7 +66,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         } else if(node.resolvedType == ValType.STRING) {
             logger.info(String.format("Performing string concatenation: %s %s %s", left, node.operator.lexeme, right));
             StringBuilder sB = new StringBuilder();
-            sB.append(left).append(right);
+            sB.append(left.toString()).append(right.toString());
             return new Value(sB.toString());
         }
 
@@ -101,7 +101,6 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
     @Override
     public Value visitExpressionStatement(NodeExpressionStatement node) {
-
         throw new UnsupportedOperationException("Unimplemented method 'visitExpressionStatement'");
     }
 
@@ -168,6 +167,11 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
     @Override
     public Value visitNodeStringLiteral(NodeStringLiteral node) {
+        return new Value(node.getValue());
+    }
+
+    @Override
+    public Value visitNodeBooleanLiteral(NodeBooleanLiteral node) {
         return new Value(node.getValue());
     }
 

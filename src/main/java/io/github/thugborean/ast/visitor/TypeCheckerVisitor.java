@@ -68,7 +68,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         }
         logger.info(String.format("Checking Binary Expression, types %s, %s", lhs, rhs));
         // This means we're dealing with an arithmetic expression
-        if(expectedTypes.peek() == ValType.NUMBER || expectedTypes.peek() == ValType.DOUBLE) {
+        if(expectedTypes.peekFirst() == ValType.NUMBER || expectedTypes.peekFirst() == ValType.DOUBLE) {
             node.resolvedType = ValType.NUMBER;
             if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) {
                 logger.severe(String.format("Illegal type in arithmetic expression: %s and %s!", lhs, rhs));
@@ -82,7 +82,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             else return ValType.NUMBER;
         }
         // This means we're dealing with a string expression
-        else if(expectedTypes.peek() == ValType.STRING) {
+        else if(expectedTypes.peekFirst() == ValType.STRING) {
             node.resolvedType = ValType.STRING;
             // We want to enforce rules on literal values but not variable references
             if(node.leftHandSide instanceof NodeLiteral && !stringExpressionTypes.contains(lhs)) {
@@ -117,10 +117,11 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         ValType declaredType = node.type.type;
         expectedTypes.offerFirst(declaredType);
 
-        logger.info("Variable type is " + node.type.type);
+        logger.info("Variable type is " + declaredType);
 
         // Check if the assignment matches the type
         logger.info("Checking if initializer is type-compatible...");
+        node.initializer.accept(this);
         // Remove the expected type from the context
         expectedTypes.pollFirst();
         return node.type.type;
@@ -157,6 +158,10 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodeStringLiteral(NodeStringLiteral node) {
         return ValType.STRING;
+    }
+    @Override
+    public ValType visitNodeBooleanLiteral(NodeBooleanLiteral node) {
+        return ValType.BOOLEAN;
     }
     @Override
     public ValType visitNodeNullLiteral(NodeNullLiteral node) {
