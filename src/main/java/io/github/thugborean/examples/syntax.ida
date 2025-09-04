@@ -1,0 +1,45 @@
+// This file will be where I showcase how I want the syntax of IDA to be structured, this file will not compile (probably)
+// The day that this compiles I will actually cry
+
+#include "something.ida"
+fn main() -> void {
+    // These are the primitives
+    num a = 123;
+    double b = 2.99;
+    string c = "hello";
+    char d = 'A';
+    bool e = true;
+    
+    // You can use null as well
+    num f = null;
+
+    // This is how you declare a struct
+    struct Person(name, age, balance) = {
+        // These are struct fields
+        string name;
+        num age;
+        double balance;
+
+        // This is a struct method
+        fn introduceYourself() -> string {
+            return "Hello my name is " + name + " and I am " + age + " years old."
+        }
+    }
+
+    // This is how you create an instance of a struct
+    Person ida = ("IDA", 29, 222.222);
+    // This is how you use a struct method
+    print(ida.introduceYourself())
+    // This is how to access members
+    string name = ida.name;
+
+    // This is how you use a function statically declared from a different file
+    something::doSomething();
+    // This is how you use a variable statically declared from a different file
+    num counter = something::counter;
+}
+
+// A function that is different from main
+fn differentFunction(num a, double b, string c, char d, bool e) -> void {
+    // Some code...
+}
