@@ -1,17 +1,19 @@
 package io.github.thugborean.vm;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.visitor.InterpreterVisitor;
 import io.github.thugborean.ast.visitor.TypeCheckerVisitor;
 import io.github.thugborean.lexer.Lexer;
 import io.github.thugborean.parser.Parser;
-import io.github.thugborean.vm.symbol.SymbolTable;
 
 public class VM {
     private Lexer lexer = new Lexer();
     private Parser parser;
     private Program program;
-
+    public Deque<Environment> envStack = new ArrayDeque<>();
 
     public void execute(String source) {
         parser = new Parser(lexer.tokenize(source));
@@ -22,17 +24,34 @@ public class VM {
     // This is the method that runs the logic
     // Each face will use its own symboltable and environments
     public void run(Program program) {
-        // Check for types
-        SymbolTable symbolTable = new SymbolTable();
-        Environment topEnv = new Environment(null, symbolTable, 0);
-        TypeCheckerVisitor typechecker = new TypeCheckerVisitor(topEnv);
+        // Typechecking
+        Environment topEnv = new Environment();
+        envStack.addLast(topEnv);
+        TypeCheckerVisitor typechecker = new TypeCheckerVisitor(topEnv, this);
         typechecker.walkTree(program);
 
+        envStack.clear();
+        
         // Implement logic
-        // Discard the typecheckers table and environment, because I can't be bothered
-        topEnv = new Environment(null, symbolTable, 0);
-        typechecker = new TypeCheckerVisitor(topEnv);
-        InterpreterVisitor interpreter = new InterpreterVisitor(topEnv);
+        topEnv = new Environment();
+        envStack.addLast(topEnv);
+        InterpreterVisitor interpreter = new InterpreterVisitor(this);
         interpreter.walkTree(program);
+
+        envStack.clear();
+    }
+
+    public void enterScope() {
+        Environment newEnv = new Environment(getCurrentEnv());
+        envStack.addLast(newEnv);
+    }
+
+    public void exitScope() {
+        getCurrentEnv().close();
+        envStack.removeLast();
+    }
+
+    public Environment getCurrentEnv() {
+        return envStack.peekLast();
     }
 }

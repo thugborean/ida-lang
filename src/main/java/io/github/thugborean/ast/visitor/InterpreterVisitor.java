@@ -1,24 +1,23 @@
 package io.github.thugborean.ast.visitor;
 
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
-import io.github.thugborean.ast.node.types.*;
+import io.github.thugborean.ast.node.statement.scope.*;
 import io.github.thugborean.logging.LoggingManager;
 import io.github.thugborean.syntax.TokenType;
-import io.github.thugborean.vm.Environment;
+import io.github.thugborean.vm.VM;
 import io.github.thugborean.vm.symbol.*;
 
 public class InterpreterVisitor implements ASTVisitor<Value> {
-    private Environment environment;
     private final static Logger logger = LoggingManager.getLogger(InterpreterVisitor.class);
+    private final VM vm;
 
-    public InterpreterVisitor(Environment environment) {
-        this.environment = environment;
+    public InterpreterVisitor(VM vm) {
+        this.vm = vm;
     }
 
     @Override
@@ -74,14 +73,14 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     }
 
     @Override
-    public Value visitUnaryExpression(NodeUnaryExpression node, ValType type) {
+    public Value visitNodeUnaryExpression(NodeUnaryExpression node, ValType type) {
         throw new UnsupportedOperationException("Unimplemented method 'visitUnaryExpression'");
     }
 
     @Override
     public Value visitNodeVariableReference(NodeVariableReference node) {
         logger.info("Getting value of reference: " + node.identifier);
-        return environment.getVariable(node.identifier).getvalue();
+        return vm.getCurrentEnv().getVariable(node.identifier).getvalue();
     }
 
     @Override
@@ -90,7 +89,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         String identifier = node.identifier.lexeme;
         // Adding the variable to the table with null as a default first before assigning it
         logger.info("Adding Variable identifier to envirionment: " + identifier);
-        environment.declareVariable(identifier, new Variable(node.type.type, null));
+        vm.getCurrentEnv().declareVariable(identifier, new Variable(node.type.type, null));
         // Assign the variable with the given intializer
         logger.info("Assigning Variable with given initializer...");
         node.initializer.accept(this);
@@ -123,7 +122,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         String identifier = node.identifier;
         logger.info("Assigning to: " + identifier);
         Value assigned = node.assignedValue.accept(this);
-        ValType type = environment.getVariable(node.identifier).getType();
+        ValType type = vm.getCurrentEnv().getVariable(node.identifier).getType();
         Object raw = assigned.value;
         Value finalValue;
         // Check if casting is needed
@@ -147,18 +146,13 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
             } else finalValue = new Value(raw);
         }
         // Finally assign the variable
-        environment.assignVariable(identifier, finalValue);
+        vm.getCurrentEnv().assignVariable(identifier, finalValue);
         logger.info("Finished assigning Variable: " + identifier);
         return null;
     }
 
     public void print(Object x) {
-    System.out.println(x);
-    }
-
-    // NEVER USED NEVER USED!!!!!!!
-    public Value visitNodeType(NodeType node) {
-        return null;
+        System.out.println(x);
     }
 
     @Override
@@ -189,5 +183,18 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     @Override
     public Value visitNodeDecrement(NodeDecrement node) {
         throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
+    }
+
+    // SCOPE
+    @Override
+    public Value visitNodeEnterScope(NodeEnterScope node) {
+        vm.enterScope();
+        return null;
+    }
+
+    @Override
+    public Value visitNodeExitScope(NodeExitScope node) {
+        vm.exitScope();
+        return null;
     }
 }

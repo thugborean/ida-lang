@@ -10,6 +10,8 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
+import io.github.thugborean.ast.node.statement.scope.NodeEnterScope;
+import io.github.thugborean.ast.node.statement.scope.NodeExitScope;
 import io.github.thugborean.ast.node.types.*;
 import io.github.thugborean.syntax.*;
 
@@ -22,8 +24,8 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    // varibleTypes
-    public static final Map<TokenType, NodeType> varibleTypes = Map.ofEntries(
+    // VariableTypes
+    private static final Map<TokenType, NodeType> varibleTypes = Map.ofEntries(
             Map.entry(TokenType.Number, new NodeNumber()),
             Map.entry(TokenType.Double, new NodeDouble()),
             Map.entry(TokenType.String, new NodeString())
@@ -34,7 +36,7 @@ public class Parser {
     );
 
     // ExpressionTokens
-    public static final Set<TokenType> expressionTokens = Set.of(
+    private static final Set<TokenType> expressionTokens = Set.of(
         TokenType.Identifier,
         TokenType.NumericLiteral,
         TokenType.DoubleLiteral,
@@ -60,15 +62,22 @@ public class Parser {
 
         TokenType.NullLiteral);
 
-    public static final Set<TokenType> operators = Set.of(
-            TokenType.Plus,
-            TokenType.Minus,
-            TokenType.Multiply,
-            TokenType.Divide,
-            TokenType.Modulo,
+    private static final Set<TokenType> operators = Set.of(
+        TokenType.Plus,
+        TokenType.Minus,
+        TokenType.Multiply,
+        TokenType.Divide,
+        TokenType.Modulo,
 
-            TokenType.AtseriskAsterisk // ²
+        TokenType.AtseriskAsterisk // ²
     );
+
+    private static final Set<TokenType> scope = Set.of(
+        TokenType.CurlyOpen,
+        TokenType.CurlyClosed
+    );
+
+    
 
     public Program createAST() {
         this.index = 0;
@@ -101,6 +110,7 @@ public class Parser {
                 endStatement();
 
                 // DIFFERENT OUTCOMES WITH IDENTIFIER
+                // --------------------------------------------------------------------------------
             } else if (peek().tokenType == TokenType.Identifier) {
                 switch (peek(1).tokenType) {
                     case TokenType.Assign: {
@@ -140,7 +150,7 @@ public class Parser {
                 }
                 endStatement();
                 // PRINT STATEMENT LOGIC
-                // -------------------------------------------------------------------------------------
+                // --------------------------------------------------------------------------------
             } else if (peek().tokenType == TokenType.Print) {
                 // Advance past the print
                 advance();
@@ -153,7 +163,17 @@ public class Parser {
                 NodeExpression printable = parseExpression(true);
                 program.addNode(new NodePrintStatement(printable));
                 endStatement();
-            }
+                // SCOPE LOGIC
+                // --------------------------------------------------------------------------------
+            } else if(scope.contains(peek().tokenType)) {
+                if(peek().tokenType == TokenType.CurlyOpen) {
+                    program.addNode(new NodeEnterScope());
+                    advance();
+                } else if(peek().tokenType == TokenType.CurlyClosed) {
+                    program.addNode(new NodeExitScope());
+                    advance();
+                } else throw new RuntimeException("This shouldn't happen!");
+            } else throw new RuntimeException(String.format("Error on token '%s', delete this token", peek()));
         }
         tokens.clear();
         return program;

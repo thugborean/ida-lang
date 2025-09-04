@@ -15,7 +15,7 @@ public class Lexer {
     // What is to be lexed
     private String source;
 
-    public static final Map<String, TokenType> keywords = Map.ofEntries(
+    private static final Map<String, TokenType> keywords = Map.ofEntries(
             // Literals
             Map.entry("null", TokenType.NullLiteral), // Evaluates to a null literal
             Map.entry("true", TokenType.True), // Evaluates to a boolean literal
@@ -46,7 +46,7 @@ public class Lexer {
             Map.entry("global", TokenType.Global),
             Map.entry("hidden", TokenType.Hidden));
 
-    public static final Map<String, TokenType> operators = Map.ofEntries(
+    private static final Map<String, TokenType> operators = Map.ofEntries(
             // Operators
             Map.entry("=", TokenType.Assign),
             Map.entry("+", TokenType.Plus),
@@ -73,7 +73,7 @@ public class Lexer {
 
             Map.entry("->", TokenType.Return));
 
-    public static final Map<String, TokenType> scopes = Map.ofEntries(
+    private static final Map<String, TokenType> scopes = Map.ofEntries(
             // Scope
             Map.entry("[", TokenType.BracketOpen),
             Map.entry("]", TokenType.BracketClosed),

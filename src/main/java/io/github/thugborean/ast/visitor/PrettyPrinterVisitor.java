@@ -4,6 +4,7 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
+import io.github.thugborean.ast.node.statement.scope.*;
 import io.github.thugborean.ast.node.types.NodeType;
 import io.github.thugborean.vm.symbol.ValType;
 
@@ -52,7 +53,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     }
 
     @Override
-    public Void visitUnaryExpression(NodeUnaryExpression node, ValType type) {
+    public Void visitNodeUnaryExpression(NodeUnaryExpression node, ValType type) {
         line("op: " + node.operator.lexeme);
         indentLevel++;
 
@@ -161,5 +162,15 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     @Override
     public Void visitNodeDecrement(NodeDecrement node) {
         throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
+    }
+
+    @Override
+    public Void visitNodeEnterScope(NodeEnterScope node) {
+        throw new UnsupportedOperationException("Unimplemented method 'visitNodeEnterScope'");
+    }
+
+    @Override
+    public Void visitNodeExitScope(NodeExitScope node) {
+        throw new UnsupportedOperationException("Unimplemented method 'visitNodeExitScope'");
     }
 }

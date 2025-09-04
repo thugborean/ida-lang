@@ -14,6 +14,6 @@ public class NodeUnaryExpression extends NodeExpression{
 
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
-        return visitor.visitUnaryExpression(this, null);
+        return visitor.visitNodeUnaryExpression(this, null);
     }   
 }

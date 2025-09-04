@@ -4,6 +4,7 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
+import io.github.thugborean.ast.node.statement.scope.*;
 import io.github.thugborean.ast.node.types.*;
 import io.github.thugborean.vm.symbol.ValType;
 
@@ -21,7 +22,7 @@ public interface ASTVisitor<T> {
     T visitNodeNullLiteral(NodeNullLiteral node);
     // Arithmetic Expressions
     T visitNodeBinaryExpression(NodeBinaryExpression node, ValType type);
-    T visitUnaryExpression(NodeUnaryExpression node, ValType type);
+    T visitNodeUnaryExpression(NodeUnaryExpression node, ValType type);
     T visitNodeVariableReference(NodeVariableReference node);
     // Stand-alone expressions
     T visitNodeIncrement(NodeIncrement node);
@@ -31,6 +32,9 @@ public interface ASTVisitor<T> {
     T visitExpressionStatement(NodeExpressionStatement node);
     T visitNodePrintStatement(NodePrintStatement node);
     T visitAssignStatement(NodeAssignStatement node);
+    // Visit NodeScope
+    T visitNodeEnterScope(NodeEnterScope node);
+    T visitNodeExitScope(NodeExitScope node);
     //Visit misc
-    T visitNodeType(NodeType node);
+    default T visitNodeType(NodeType node){return null;};
 }

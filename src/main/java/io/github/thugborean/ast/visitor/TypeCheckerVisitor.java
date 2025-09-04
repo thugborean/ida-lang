@@ -10,20 +10,21 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
-import io.github.thugborean.ast.node.types.*;
+import io.github.thugborean.ast.node.statement.scope.NodeEnterScope;
+import io.github.thugborean.ast.node.statement.scope.NodeExitScope;
 import io.github.thugborean.logging.LoggingManager;
 import io.github.thugborean.vm.Environment;
+import io.github.thugborean.vm.VM;
 import io.github.thugborean.vm.symbol.*;
 
 public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     // Create the logger and give it the class' name
     private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
     private final Deque<ValType> expectedTypes = new ArrayDeque<>();
-    private SymbolTable symbolTable = new SymbolTable();
-    private Environment environment;
+    private final VM vm;
 
-    public TypeCheckerVisitor(Environment environment) {
-        this.environment = environment;
+    public TypeCheckerVisitor(Environment environment, VM vm) {
+        this.vm = vm;
     }
 
     private final Set<ValType> reugularExpressionTypes = Set.of(
@@ -95,21 +96,21 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     }
 
     @Override
-    public ValType visitUnaryExpression(NodeUnaryExpression node, ValType type) {
+    public ValType visitNodeUnaryExpression(NodeUnaryExpression node, ValType type) {
         throw new UnsupportedOperationException("Unimplemented method 'visitUnaryExpression'");
     }
 
     @Override
     public ValType visitNodeVariableReference(NodeVariableReference node) {
         logger.info("Checking if Symbol is present: " + node.identifier);
-        if(!symbolTable.symbolExists(node.identifier)) throw new RuntimeException("Unrecognized symbol " + node.identifier);
-        return symbolTable.get(node.identifier, environment.scopeLevel).symbol.getType();
+        if(!vm.getCurrentEnv().variableExists(node.identifier)) throw new RuntimeException("Unrecognized symbol " + node.identifier);
+        return vm.getCurrentEnv().getVariable(node.identifier).getType();
     }
 
     @Override
     public ValType visitNodeVariableDeclaration(NodeVariableDeclaration node) {
         logger.info("Checking a Variable declaration...");
-        symbolTable.declare(node.identifier.lexeme, new Variable(node.type.type, null));
+        vm.getCurrentEnv().declareVariable(node.identifier.lexeme, new Variable(node.type.type, null));
         logger.info("Variable identifier is: " + node.identifier.lexeme);
 
         // This is the type we are expecting
@@ -136,7 +137,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     @Override
     public ValType visitAssignStatement(NodeAssignStatement node) {
-        ValType type = symbolTable.get(node.identifier, environment.scopeLevel).symbol.getType();
+        ValType type = vm.getCurrentEnv().getVariable(node.identifier).getType();
         // Check if the value we are assigning can be assigned to the current type
         if(!isAssignable(type, node.assignedValue.accept(this))) {
             logger.severe(String.format("Found illegal assignment: %s != %s", type, node.assignedValue.accept(this)));
@@ -145,10 +146,6 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         return node.assignedValue.accept(this);
     }
 
-    // DEPRICATED
-    public ValType visitNodeType(NodeType node) {
-        return null;
-    }
     // This vistitor needs these specific methods
     @Override
     public ValType visitNodeNumericLiteral(NodeNumericLiteral node) {
@@ -192,6 +189,18 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         // Checks if the value can be printed
         node.printable.accept(this);
         logger.info("Print Statement has passed");
+        return null;
+    }
+
+    @Override
+    public ValType visitNodeEnterScope(NodeEnterScope node) {
+        vm.enterScope();
+        return null;
+    }
+
+    @Override
+    public ValType visitNodeExitScope(NodeExitScope node) {
+        vm.exitScope();
         return null;
     }
 
