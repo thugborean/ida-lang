@@ -19,6 +19,7 @@ public class Parser {
     public List<Token> tokens;
     public Program program = new Program();
     private int index = 0;
+    private int curlyDepth = 0;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -28,11 +29,8 @@ public class Parser {
     private static final Map<TokenType, NodeType> varibleTypes = Map.ofEntries(
             Map.entry(TokenType.Number, new NodeNumber()),
             Map.entry(TokenType.Double, new NodeDouble()),
-            Map.entry(TokenType.String, new NodeString())
-
-    // Map.entry(null, null),
-    // Map.entry(null, null),
-    // Map.entry(null, null)
+            Map.entry(TokenType.String, new NodeString()),
+            Map.entry(TokenType.Boolean, new NodeBoolean())
     );
 
     // ExpressionTokens
@@ -42,6 +40,7 @@ public class Parser {
         TokenType.DoubleLiteral,
         TokenType.CharacterLiteral,
         TokenType.StringLiteral,
+        TokenType.BooleanLiteral,
 
         TokenType.Plus,
         TokenType.Minus,
@@ -97,7 +96,7 @@ public class Parser {
 
                 // Check if the current token is Assign, if not throw error, variables must be initialized upon declaration
                 if (peek().tokenType == TokenType.Assign) advance();
-                    else throw new RuntimeException("Parser Error: Identifer must be followed by assignment");
+                    else throw new RuntimeException("Parser Error: Variable must be intitialized!");
 
                 // THIS IS THE POINT AFTER =
                 NodeExpression initialValue = parseExpression(false);
@@ -120,7 +119,7 @@ public class Parser {
 
                         // Check if the current token is Assign, if not throw error, variables must be initialized upon declaration
                         if (peek().tokenType == TokenType.Assign) advance();
-                            else throw new RuntimeException("Parser Error: Identifer must be followed by assignment");
+                            else throw new RuntimeException("Parser Error: Variable must be intitialized!");
 
                         // Assume there is not ()
                         NodeExpression assignment = parseExpression(false);
@@ -168,13 +167,16 @@ public class Parser {
             } else if(scope.contains(peek().tokenType)) {
                 if(peek().tokenType == TokenType.CurlyOpen) {
                     program.addNode(new NodeEnterScope());
+                    curlyDepth++;
                     advance();
                 } else if(peek().tokenType == TokenType.CurlyClosed) {
                     program.addNode(new NodeExitScope());
+                    curlyDepth--;
                     advance();
                 } else throw new RuntimeException("This shouldn't happen!");
             } else throw new RuntimeException(String.format("Error on token '%s', delete this token", peek()));
         }
+        if(curlyDepth != 0) throw new RuntimeException("Parser Error: Mismatched curly-braces!");
         tokens.clear();
         return program;
     }
@@ -316,7 +318,7 @@ public class Parser {
             } else if (token.tokenType == TokenType.CharacterLiteral) {
                 throw new RuntimeException("Char is unimplemented!");
             } else if (token.tokenType == TokenType.BooleanLiteral) {
-                throw new RuntimeException("Bool is unimplemented!");
+                stack.push(new NodeBooleanLiteral(token));
             } else if (operators.contains(token.tokenType)) {
                 if (stack.size() < 2) {
                     throw new RuntimeException("Parser Error: Not enough operands for operator: " + token.lexeme);
@@ -355,6 +357,10 @@ public class Parser {
         if (peek().tokenType != TokenType.SemiColon)
             throw new RuntimeException("Parser Error: ';' needed to end statement");
         else advance();
+    }
+
+    public void parseIfStatement() {
+        
     }
 
     public void loadTokens(List<Token> tokens) {

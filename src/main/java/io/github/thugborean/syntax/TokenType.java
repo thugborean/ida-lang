@@ -48,7 +48,7 @@ public enum TokenType {
     Boolean, // bool
 
     // Functions and structures
-    Function, // func
+    Function, // fn
     Void, // Used for returnType in functions
     Structure, // struct
 

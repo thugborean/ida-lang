@@ -29,7 +29,7 @@ public class Lexer {
             Map.entry("bool", TokenType.Boolean),
 
             // Functions and structures
-            Map.entry("func", TokenType.Function),
+            Map.entry("fn", TokenType.Function),
             Map.entry("void", TokenType.Void),
             Map.entry("struct", TokenType.Structure),
 

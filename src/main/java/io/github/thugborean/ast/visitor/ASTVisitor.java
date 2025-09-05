@@ -18,7 +18,7 @@ public interface ASTVisitor<T> {
     T visitNodeDoubleLiteral(NodeDoubleLiteral node);
     T visitNodeStringLiteral(NodeStringLiteral node);
     // T visitNodeCharacterLiteral(NodeCharacterLiteral node);
-    // T visitNodeBooleanLiteral(NodeBooleanLiteral node);
+    T visitNodeBooleanLiteral(NodeBooleanLiteral node);
     T visitNodeNullLiteral(NodeNullLiteral node);
     // Arithmetic Expressions
     T visitNodeBinaryExpression(NodeBinaryExpression node, ValType type);

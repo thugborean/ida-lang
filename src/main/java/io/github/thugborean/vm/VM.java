@@ -2,17 +2,14 @@ package io.github.thugborean.vm;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.logging.Logger;
 
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.visitor.InterpreterVisitor;
 import io.github.thugborean.ast.visitor.TypeCheckerVisitor;
 import io.github.thugborean.lexer.Lexer;
-import io.github.thugborean.logging.LoggingManager;
 import io.github.thugborean.parser.Parser;
 
 public class VM {
-    private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
     private Lexer lexer = new Lexer();
     private Parser parser;
     private Program program;

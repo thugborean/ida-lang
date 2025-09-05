@@ -39,7 +39,6 @@ public class Value {
 
     @Override
     public String toString() {
-
         switch (getType()) {
             case ValType.NUMBER: {
                 return Integer.toString((Integer)value);

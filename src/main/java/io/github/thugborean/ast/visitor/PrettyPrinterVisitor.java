@@ -173,4 +173,9 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     public Void visitNodeExitScope(NodeExitScope node) {
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeExitScope'");
     }
+
+    @Override
+    public Void visitNodeBooleanLiteral(NodeBooleanLiteral node) {
+        throw new UnsupportedOperationException("Unimplemented method 'visitNodeBooleanLiteral'");
+    }
 }
