@@ -56,8 +56,9 @@ public enum TokenType {
 
     // Loops and control flow
     If,
+    Bang,
     EqualsEquals, // ==
-    NotEquals, // !=
+    BangEquals, // !=
     LessThan, // <
     GreaterThan, // >
     LessThanOrEquals, // <=

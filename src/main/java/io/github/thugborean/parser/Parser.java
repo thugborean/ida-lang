@@ -50,7 +50,8 @@ public class Parser {
         TokenType.AtseriskAsterisk,
 
         TokenType.EqualsEquals,
-        TokenType.NotEquals,
+        TokenType.BangEquals,
+        TokenType.Bang,
         TokenType.LessThan,
         TokenType.LessThanOrEquals,
         TokenType.GreaterThan,
@@ -360,7 +361,8 @@ public class Parser {
     }
 
     public void parseIfStatement() {
-        
+        if(!(peek().tokenType == TokenType.If)) throw new RuntimeException("This shouldn't happen!");
+        advance();
     }
 
     public void loadTokens(List<Token> tokens) {

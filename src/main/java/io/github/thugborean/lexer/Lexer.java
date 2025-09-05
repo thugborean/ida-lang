@@ -55,6 +55,7 @@ public class Lexer {
             Map.entry("/", TokenType.Divide),
             Map.entry("%", TokenType.Modulo),
 
+            Map.entry("!", TokenType.Bang),
             Map.entry("<", TokenType.LessThan),
             Map.entry(">", TokenType.GreaterThan),
 
@@ -64,7 +65,7 @@ public class Lexer {
             Map.entry("**", TokenType.AtseriskAsterisk),
 
             Map.entry("==", TokenType.EqualsEquals),
-            Map.entry("!=", TokenType.NotEquals),
+            Map.entry("!=", TokenType.BangEquals),
             Map.entry("<=", TokenType.LessThanOrEquals),
             Map.entry(">=", TokenType.GreaterThanOrEquals),
 
