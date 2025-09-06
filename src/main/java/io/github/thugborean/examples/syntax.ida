@@ -43,3 +43,8 @@ fn main() -> void {
 fn differentFunction(num a, double b, string c, char d, bool e) -> void {
     // Some code...
 }
+
+// Use the -> operator when returning
+fn add(num a, num b) -> num {
+    -> a + b;
+}

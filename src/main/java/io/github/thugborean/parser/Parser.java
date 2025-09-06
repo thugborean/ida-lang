@@ -49,6 +49,8 @@ public class Parser {
         TokenType.Modulo,
         TokenType.AtseriskAsterisk,
 
+        TokenType.And,
+        TokenType.Or,
         TokenType.EqualsEquals,
         TokenType.BangEquals,
         TokenType.Bang,
@@ -163,17 +165,16 @@ public class Parser {
                 NodeExpression printable = parseExpression(true);
                 program.addNode(new NodePrintStatement(printable));
                 endStatement();
+
+            } else if(peek().tokenType == TokenType.If){
+                NodeExpression booleanExpression = parseIfStatement(true);
                 // SCOPE LOGIC
                 // --------------------------------------------------------------------------------
             } else if(scope.contains(peek().tokenType)) {
                 if(peek().tokenType == TokenType.CurlyOpen) {
-                    program.addNode(new NodeEnterScope());
-                    curlyDepth++;
-                    advance();
+                    enterScope();
                 } else if(peek().tokenType == TokenType.CurlyClosed) {
-                    program.addNode(new NodeExitScope());
-                    curlyDepth--;
-                    advance();
+                    exitScope();
                 } else throw new RuntimeException("This shouldn't happen!");
             } else throw new RuntimeException(String.format("Error on token '%s', delete this token", peek()));
         }
@@ -340,8 +341,11 @@ public class Parser {
 
     private int getPrecedence(Token token) {
         switch (token.tokenType) {
+            case Or:
+                return 0;
             case Plus:
             case Minus:
+            case And:
                 return 1;
             case Multiply:
             case Divide:
@@ -360,9 +364,35 @@ public class Parser {
         else advance();
     }
 
-    public void parseIfStatement() {
+    // isElIf determines whether or not following if statements are else-if
+    public NodeExpression parseIfStatement(boolean isElif) {
         if(!(peek().tokenType == TokenType.If)) throw new RuntimeException("This shouldn't happen!");
         advance();
+
+        if(!(peek().tokenType == TokenType.ParenthesesOpen)) throw new RuntimeException("Missing '('");
+        advance();
+
+        NodeExpression booleanExpression = parseExpression(true);
+        advance();
+        
+        return booleanExpression;
+    }
+
+    public void parseScope() {
+        if(!(peek().tokenType == TokenType.CurlyOpen)) throw new RuntimeException("Parser Error: Missing '{'");
+        
+    }
+
+    private void enterScope() {
+        if(!(peek().tokenType == TokenType.CurlyOpen)) throw new RuntimeException("Parser Error: Missing '{'");
+        program.addNode(new NodeEnterScope());
+        curlyDepth++;
+    }
+
+    private void exitScope() {
+        if(!(peek().tokenType == TokenType.CurlyOpen)) throw new RuntimeException("Parser Error: Missing '{'");
+        program.addNode(new NodeExitScope());
+        curlyDepth--;
     }
 
     public void loadTokens(List<Token> tokens) {

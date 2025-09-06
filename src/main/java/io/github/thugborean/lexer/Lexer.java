@@ -64,6 +64,8 @@ public class Lexer {
             Map.entry("--", TokenType.MinusMinus),
             Map.entry("**", TokenType.AtseriskAsterisk),
 
+            Map.entry("&&", TokenType.And),
+            Map.entry("||", TokenType.Or),
             Map.entry("==", TokenType.EqualsEquals),
             Map.entry("!=", TokenType.BangEquals),
             Map.entry("<=", TokenType.LessThanOrEquals),
