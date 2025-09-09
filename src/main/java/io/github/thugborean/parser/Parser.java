@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.management.RuntimeErrorException;
+
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
@@ -166,8 +168,10 @@ public class Parser {
                 program.addNode(new NodePrintStatement(printable));
                 endStatement();
 
-            } else if(peek().tokenType == TokenType.If){
-                NodeExpression booleanExpression = parseIfStatement(true);
+            } else if(peek().tokenType == TokenType.If) {
+
+                NodeExpression booleanExpression = parseIfStatement();
+                program.addNode(new NodeIfStatement(booleanExpression, null));
                 // SCOPE LOGIC
                 // --------------------------------------------------------------------------------
             } else if(scope.contains(peek().tokenType)) {
@@ -365,33 +369,37 @@ public class Parser {
     }
 
     // isElIf determines whether or not following if statements are else-if
-    public NodeExpression parseIfStatement(boolean isElif) {
-        if(!(peek().tokenType == TokenType.If)) throw new RuntimeException("This shouldn't happen!");
+    public NodeExpression parseIfStatement() {
+        if(peek().tokenType != TokenType.If) throw new RuntimeException("This shouldn't happen!");
         advance();
 
-        if(!(peek().tokenType == TokenType.ParenthesesOpen)) throw new RuntimeException("Missing '('");
+        if(peek().tokenType != TokenType.ParenthesesOpen) throw new RuntimeException("Missing '('");
         advance();
 
         NodeExpression booleanExpression = parseExpression(true);
         advance();
         
+        if(peek().tokenType != TokenType.CurlyOpen) throw new RuntimeException("Missing '{'");
+        else {
+            enterScope();
+            advance();
+            }
         return booleanExpression;
     }
 
     public void parseScope() {
         if(!(peek().tokenType == TokenType.CurlyOpen)) throw new RuntimeException("Parser Error: Missing '{'");
-        
     }
 
     private void enterScope() {
         if(!(peek().tokenType == TokenType.CurlyOpen)) throw new RuntimeException("Parser Error: Missing '{'");
-        program.addNode(new NodeEnterScope());
+        program.blockStack.addLast(new NodeBlock());
         curlyDepth++;
     }
 
     private void exitScope() {
         if(!(peek().tokenType == TokenType.CurlyOpen)) throw new RuntimeException("Parser Error: Missing '{'");
-        program.addNode(new NodeExitScope());
+        program.blockStack.addLast(new NodeBlock());
         curlyDepth--;
     }
 

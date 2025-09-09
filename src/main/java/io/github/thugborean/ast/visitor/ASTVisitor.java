@@ -36,5 +36,7 @@ public interface ASTVisitor<T> {
     T visitNodeEnterScope(NodeEnterScope node);
     T visitNodeExitScope(NodeExitScope node);
     //Visit misc
-    default T visitNodeType(NodeType node){return null;};
+    default T visitNodeType(NodeType node){return null;}
+    default T visitNodeBlock(NodeBlock nodeBlock){return null;}
+    default T visitNodeIfStatement(NodeIfStatement nodeIfStatement){return null;}
 }
