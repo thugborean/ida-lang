@@ -38,6 +38,15 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         ValType.CHARACTER
     );
 
+    private final Set<ValType> booleanExpressionTypes = Set.of(
+        ValType.NUMBER,
+        ValType.DOUBLE,
+        ValType.STRING,
+        ValType.CHARACTER,
+        ValType.BOOLEAN,
+        ValType.NULL
+    );
+
     private final Map<String, Set<ValType>> binaryOperatorRules = Map.of(
         "+", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING),
         "-", Set.of(ValType.NUMBER, ValType.DOUBLE),
@@ -110,21 +119,23 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodeVariableDeclaration(NodeVariableDeclaration node) {
         logger.info("Checking a Variable declaration...");
-        vm.getCurrentEnv().declareVariable(node.identifier.lexeme, new Variable(node.type.type, null));
-        logger.info("Variable identifier is: " + node.identifier.lexeme);
+        vm.getCurrentEnv().declareVariable(node.identifier, new Variable(node.type, null));
+        logger.info("Variable identifier is: " + node.identifier);
 
         // This is the type we are expecting
-        ValType declaredType = node.type.type;
+        ValType declaredType = node.type; // null? 
         expectedTypes.offerFirst(declaredType);
 
         logger.info("Variable type is " + declaredType);
 
         // Check if the assignment matches the type
         logger.info("Checking if initializer is type-compatible...");
-        node.initializer.accept(this);
+        if(node.initializer != null)
+            node.initializer.accept(this);
+
         // Remove the expected type from the context
         expectedTypes.pollFirst();
-        return node.type.type;
+        return node.type;
     }
 
     @Override
@@ -138,12 +149,12 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     public ValType visitAssignStatement(NodeAssignStatement node) {
         ValType type = vm.getCurrentEnv().getVariable(node.identifier).getType();
         // Check if the value we are assigning can be assigned to the current type
-        if(!isAssignable(type, node.assignedValue.accept(this))) {
-            logger.severe(String.format("Found illegal assignment: %s != %s", type, node.assignedValue.accept(this)));
-            throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.assignedValue.accept(this));
+        if(!isAssignable(type, node.expression.accept(this))) {
+            logger.severe(String.format("Found illegal assignment: %s != %s", type, node.expression.accept(this)));
+            throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.expression.accept(this));
         }
-        logger.info(String.format("Type: %s is compatible with initializer: %s", type, node.assignedValue.accept(this)));
-        return node.assignedValue.accept(this);
+        logger.info(String.format("Type: %s is compatible with initializer: %s", type, node.expression.accept(this)));
+        return node.expression.accept(this);
     }
 
     // This vistitor needs these specific methods
@@ -193,6 +204,19 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         // Checks if the value can be printed
         node.printable.accept(this);
         logger.info("Print Statement has passed");
+        return null;
+    }
+
+    @Override
+    public ValType visitNodeBlock(NodeBlock node) {
+        vm.enterScope();
+        logger.info("Entering scope, level: " + Environment.globalScopeDepth);
+        try {
+            for(NodeStatement statement : node.statements) statement.accept(this);
+        } finally {
+            vm.exitScope();
+            logger.info("Exiting scope, level: " + Environment.globalScopeDepth);
+        }
         return null;
     }
 

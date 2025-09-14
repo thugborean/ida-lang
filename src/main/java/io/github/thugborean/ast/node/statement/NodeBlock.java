@@ -6,8 +6,11 @@ import java.util.List;
 import io.github.thugborean.ast.visitor.ASTVisitor;
 
 public class NodeBlock extends NodeStatement{
-    private List<NodeStatement> statements = new ArrayList<>();
+    public List<NodeStatement> statements = new ArrayList<>();
 
+    public NodeBlock(List<NodeStatement> statements) {
+        this.statements = statements;
+    }
 
     public void addNode(NodeStatement node) {
         statements.add(node);

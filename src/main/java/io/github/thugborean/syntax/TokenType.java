@@ -56,6 +56,7 @@ public enum TokenType {
 
     // Loops and control flow
     If,
+    Else,
     And,
     Or,
     Bang,

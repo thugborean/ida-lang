@@ -1,15 +1,14 @@
 package io.github.thugborean.ast.node.statement;
 
-import io.github.thugborean.ast.node.types.NodeType;
 import io.github.thugborean.ast.visitor.ASTVisitor;
-import io.github.thugborean.syntax.Token;
+import io.github.thugborean.vm.symbol.ValType;
 
 public class NodeVariableDeclaration extends NodeStatement {
-    public NodeType type;
-    public Token identifier;
+    public ValType type;
+    public String identifier;
     public NodeAssignStatement initializer;
 
-    public NodeVariableDeclaration(NodeType type, Token identifier, NodeAssignStatement initializer) {
+    public NodeVariableDeclaration(ValType type, String identifier, NodeAssignStatement initializer) {
         this.type = type;
         this.identifier = identifier;
         this.initializer = initializer;

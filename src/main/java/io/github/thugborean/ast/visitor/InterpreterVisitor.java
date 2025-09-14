@@ -87,10 +87,10 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     @Override
     public Value visitNodeVariableDeclaration(NodeVariableDeclaration node) {
         logger.info("Declaring Variable...");
-        String identifier = node.identifier.lexeme;
+        String identifier = node.identifier;
         // Adding the variable to the table with null as a default first before assigning it
         logger.info("Adding Variable identifier to envirionment: " + identifier);
-        vm.getCurrentEnv().declareVariable(identifier, new Variable(node.type.type, null));
+        vm.getCurrentEnv().declareVariable(identifier, new Variable(node.type, null));
         // Assign the variable with the given intializer
         logger.info("Assigning Variable with given initializer...");
         node.initializer.accept(this);
@@ -121,7 +121,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     public Value visitAssignStatement(NodeAssignStatement node) {
         String identifier = node.identifier;
         logger.info("Assigning to: " + identifier);
-        Value assigned = node.assignedValue.accept(this);
+        Value assigned = node.expression.accept(this);
         ValType type = vm.getCurrentEnv().getVariable(node.identifier).getType();
         Object raw = assigned.value;
         Value finalValue;
@@ -147,7 +147,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         }
         // Finally assign the variable
         vm.getCurrentEnv().assignVariable(identifier, finalValue);
-        logger.info("Finished assigning Variable: " + identifier);
+        logger.info("Finished assigning Variable: " + identifier + " -> " + finalValue);
         return null;
     }
 
@@ -188,6 +188,19 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     @Override
     public Value visitNodeDecrement(NodeDecrement node) {
         throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
+    }
+
+    @Override
+    public Value visitNodeBlock(NodeBlock node) {
+        vm.enterScope();
+        logger.info("Entering scope, level: " + Environment.globalScopeDepth);
+        try {
+            for(NodeStatement statement : node.statements) statement.accept(this);
+        } finally {
+            vm.exitScope();
+            logger.info("Exiting scope, level: " + Environment.globalScopeDepth);
+        }
+        return null;
     }
 
     // SCOPE

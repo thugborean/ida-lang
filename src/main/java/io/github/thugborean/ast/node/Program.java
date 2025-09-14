@@ -17,7 +17,10 @@ public class Program implements NodeAST {
         nodes = new ArrayList<>();
     }
 
-    // WIP MAYBE NEEDED IDK
+    public Program(List<NodeStatement> nodes) {
+        this.nodes = nodes;
+    }
+
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
         return null;
