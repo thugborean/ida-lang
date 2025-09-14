@@ -24,8 +24,8 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         line("Variable Declaration:");
         indentLevel++;
         // For getting the type
-        node.type.accept(this);
-        line("identifier: " + node.identifier.lexeme);
+        line(node.type.toString());
+        line("identifier: " + node.identifier);
         line("value: ");
         indentLevel++;
         node.initializer.accept(this);
@@ -91,7 +91,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
 
     @Override
     public Void visitExpressionStatement(NodeExpressionStatement node) {
-        node.value.accept(this);
+        node.expression.accept(this);
         return null;
     }
 
@@ -104,7 +104,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
 
         line("assigned: ");
         indentLevel++;
-        node.assignedValue.accept(this);
+        node.expression.accept(this);
         indentLevel--;
 
         indentLevel--;

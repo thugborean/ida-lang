@@ -49,7 +49,7 @@ public class REPL {
                         } else if(mode.equals("parser")) {
                                 try {
                                 parser = new Parser(lexer.tokenize(input));
-                                Program program = parser.createAST();
+                                Program program = parser.parseProgram();
                                 visitor = new PrettyPrinterVisitor();
                                 visitor.walkTree(program);
                                 visitor.print();

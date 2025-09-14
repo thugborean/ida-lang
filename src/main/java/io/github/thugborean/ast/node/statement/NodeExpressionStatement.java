@@ -4,12 +4,10 @@ import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.ast.visitor.ASTVisitor;
 
 public class NodeExpressionStatement extends NodeStatement {
-    public String identifier;
-    public NodeExpression value;
+    public NodeExpression expression;
 
-    public NodeExpressionStatement(String identifier, NodeExpression value) {
-        this.identifier = identifier;
-        this.value = value;
+    public NodeExpressionStatement(NodeExpression expression) {
+        this.expression = expression;
     }
 
     @Override

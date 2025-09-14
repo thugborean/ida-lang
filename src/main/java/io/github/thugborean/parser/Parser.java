@@ -10,14 +10,11 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
-import io.github.thugborean.ast.node.statement.scope.NodeEnterScope;
-import io.github.thugborean.ast.node.statement.scope.NodeExitScope;
-import io.github.thugborean.ast.node.types.*;
+import io.github.thugborean.vm.symbol.*;
 import io.github.thugborean.syntax.*;
 
 public class Parser {
     public List<Token> tokens;
-    public Program program = new Program();
     private int index = 0;
     private int curlyDepth = 0;
 
@@ -26,11 +23,11 @@ public class Parser {
     }
 
     // VariableTypes
-    private static final Map<TokenType, NodeType> varibleTypes = Map.ofEntries(
-            Map.entry(TokenType.Number, new NodeNumber()),
-            Map.entry(TokenType.Double, new NodeDouble()),
-            Map.entry(TokenType.String, new NodeString()),
-            Map.entry(TokenType.Boolean, new NodeBoolean())
+    private static final Map<TokenType, ValType> variableTypes = Map.ofEntries(
+            Map.entry(TokenType.Number, ValType.NUMBER),
+            Map.entry(TokenType.Double, ValType.DOUBLE),
+            Map.entry(TokenType.String, ValType.STRING),
+            Map.entry(TokenType.Boolean, ValType.BOOLEAN)
     );
 
     // ExpressionTokens
@@ -43,7 +40,9 @@ public class Parser {
         TokenType.BooleanLiteral,
 
         TokenType.Plus,
+        TokenType.PlusPlus,
         TokenType.Minus,
+        TokenType.MinusMinus,
         TokenType.Multiply,
         TokenType.Divide,
         TokenType.Modulo,
@@ -74,136 +73,23 @@ public class Parser {
         TokenType.AtseriskAsterisk // ²
     );
 
-    private static final Set<TokenType> scope = Set.of(
-        TokenType.CurlyOpen,
-        TokenType.CurlyClosed
-    );
-
-    
-
-    public Program createAST() {
+    public Program parseProgram() {
         this.index = 0;
-        this.program = new Program();
+        List<NodeStatement> statements = new ArrayList<>();
         while (!isAtEnd()) {
-            // VARIABLE DECLARATION LOGIC
-            // --------------------------------------------------------------------------------
-            if (varibleTypes.containsKey(peek().tokenType)) {
-
-                // Get variable type then advance
-                NodeType type = varibleTypes.get(peek().tokenType); // Needs keyword new
-                advance();
-
-                // Get variable identifer Token then advance
-                Token identifier = peek(); // Maybe some checks are needed to see if its valid ???
-                advance();
-
-                // Check if the current token is Assign, if not throw error, variables must be initialized upon declaration
-                if (peek().tokenType == TokenType.Assign) advance();
-                    else throw new RuntimeException("Parser Error: Variable must be intitialized!");
-
-                // THIS IS THE POINT AFTER =
-                NodeExpression initialValue = parseExpression(false);
-
-                // Create the initial assignment value
-                NodeAssignStatement assignment = new NodeAssignStatement(identifier.lexeme, initialValue);
-                // We are done! Finally add the variable declaration to the Program AST
-                program.addNode(new NodeVariableDeclaration(type, identifier, assignment));
-                // Advance past the SemiColon
-                endStatement();
-
-                // DIFFERENT OUTCOMES WITH IDENTIFIER
-                // --------------------------------------------------------------------------------
-            } else if (peek().tokenType == TokenType.Identifier) {
-                switch (peek(1).tokenType) {
-                    case TokenType.Assign: {
-                        // Get the identifier and advance
-                        String identifier = peek().lexeme;
-                        advance();
-
-                        // Check if the current token is Assign, if not throw error, variables must be initialized upon declaration
-                        if (peek().tokenType == TokenType.Assign) advance();
-                            else throw new RuntimeException("Parser Error: Variable must be intitialized!");
-
-                        // Assume there is not ()
-                        NodeExpression assignment = parseExpression(false);
- 
-                        // Add NodeAssignstatement with given identifier and assignment
-                        program.addNode(new NodeAssignStatement(identifier, assignment));
-                        break;
-                    }
-                    case TokenType.Append:
-                        // Truncating
-                    case TokenType.Truncate:
-                        // Incrementing
-                    case TokenType.PlusPlus: {
-                        String identifier = peek().lexeme;
-                        advance(); // Advances past the identifier
-                        advance(); // Advances past the ++
-
-                        program.addNode(new NodeExpressionStatement(identifier, new NodeIncrement()));
-                        break;
-                    }
-                    // Decrementing
-                    case TokenType.MinusMinus:
-                        // Function call
-                    case TokenType.ParenthesesOpen:
-                    default:
-                        throw new RuntimeException("Parser Error: Unknown operation on Symbol");
-                }
-                endStatement();
-                // PRINT STATEMENT LOGIC
-                // --------------------------------------------------------------------------------
-            } else if (peek().tokenType == TokenType.Print) {
-                // Advance past the print
-                advance();
-                // Check if the current token is an open parentheses, if so advance past it
-                if (peek().tokenType != TokenType.ParenthesesOpen)
-                    throw new RuntimeException("Parser Error: Excepted '(' after print statement");
-                advance();
-
-                // Parse the expression
-                NodeExpression printable = parseExpression(true);
-                program.addNode(new NodePrintStatement(printable));
-                endStatement();
-
-            } else if(peek().tokenType == TokenType.If){
-                NodeExpression booleanExpression = parseIfStatement(true);
-                // SCOPE LOGIC
-                // --------------------------------------------------------------------------------
-            } else if(scope.contains(peek().tokenType)) {
-                if(peek().tokenType == TokenType.CurlyOpen) {
-                    enterScope();
-                } else if(peek().tokenType == TokenType.CurlyClosed) {
-                    exitScope();
-                } else throw new RuntimeException("This shouldn't happen!");
-            } else throw new RuntimeException(String.format("Error on token '%s', delete this token", peek()));
+            statements.add(parseStatement());
         }
         if(curlyDepth != 0) throw new RuntimeException("Parser Error: Mismatched curly-braces!");
-        tokens.clear();
-        return program;
+        curlyDepth = 0;
+        return new Program(statements);
     }
 
-    private Token peek(int amount) {
-        if (index <= tokens.size())
-            return tokens.get(index + amount);
-        else
-            return null;
-    }
-
-    private Token peek() {
-        return peek(0);
-    }
-
-    private void advance() {
-        index++;
-    }
-
-    private boolean isAtEnd() {
-        return index >= tokens.size() || peek().tokenType == TokenType.EOF;
-    }
-
-    private boolean isExpressionToken(TokenType tokenType) {
-        return expressionTokens.contains(tokenType) ? true : false;
+    private NodeStatement parseStatement() {
+        if(match(TokenType.If)) return parseIfStatement();
+        if(match(TokenType.Number, TokenType.Double, TokenType.String, TokenType.Boolean)) return parseVariableDeclaration();
+        if(match(TokenType.Print)) return parsePrintStatement();
+        if(match(TokenType.CurlyOpen)) return parseBlock();
+        return parseExpressionStatement();
     }
 
     // This method will from now on be used to parse ALL expressions, typechecker will enforce correctness
@@ -244,7 +130,7 @@ public class Parser {
         if (peek().tokenType != TokenType.SemiColon)
             throw new RuntimeException("Parser Error: Expected ';' after expression");
         if (depth != 0)
-            throw new RuntimeException("Parser Error: ( not closed properly");
+            throw new RuntimeException("Parser Error: '('' not closed properly");
         // Check if the expression is empty
         if (expressionTokens.isEmpty())
             throw new RuntimeException("Parser Error: Empty expression");
@@ -353,54 +239,151 @@ public class Parser {
                 return 2;
             case AtseriskAsterisk:
                 return 3;
+            case Assign:
+                return -1;
             default:
                 return 0;
         }
     }
 
+    private NodeExpressionStatement parseExpressionStatement() {
+        // This is ugly but will have to do for now
+        if(peek(1).tokenType == TokenType.Assign) return parseAssignStatement();
+        else {
+            NodeExpression expressionStatement = parseExpression(false);
+            endStatement();
+            return new NodeExpressionStatement(expressionStatement);
+        }
+    }
+
+    // Will need clean-up!
+    private NodeVariableDeclaration parseVariableDeclaration() {
+        Token typeToken = advance();
+        ValType declaredType = variableTypes.get(typeToken.tokenType);
+
+        // Explicitly require IDENTIFIER next
+        Token identifierToken = consume(TokenType.Identifier, "Expected variable name after type");
+        String identifier = identifierToken.lexeme;
+
+        // Optional initializer
+        NodeAssignStatement assignment = null;
+        if (match(TokenType.Assign)) {
+            assignment = parseAssignStatement(identifier);
+        }
+
+        endStatement();
+        return new NodeVariableDeclaration(declaredType, identifier, assignment);
+    }
+
+    private NodePrintStatement parsePrintStatement() {
+        consume(TokenType.Print, "Missing print-statement!");
+
+        consume(TokenType.ParenthesesOpen, "Missing '(' on print statement!");
+
+        NodeExpression printable = parseExpression(true);
+
+        endStatement();
+        return new NodePrintStatement(printable);
+    }
+
+    private NodeIfStatement parseIfStatement() {
+        consume(TokenType.If, "Missing 'if' token in if-statement!");
+        consume(TokenType.ParenthesesOpen, "Missing '(' before expression!");
+        NodeExpression condition = parseExpression(true);
+        NodeBlock thenblock;
+        if(match(TokenType.CurlyOpen)) thenblock = parseBlock();
+            else throw new RuntimeException("Missing '{' in if-statement!");
+
+        if(match(TokenType.Else)) {
+            consume(TokenType.Else, "Missing else block in if-statement!");
+            NodeBlock elseBlock = parseBlock();
+            return new NodeIfStatement(condition, thenblock, elseBlock);
+        } else {
+            return new NodeIfStatement(condition, thenblock);
+        }
+    }
+
+    private NodeBlock parseBlock() {
+        List<NodeStatement> statements = new ArrayList<>();
+        consume(TokenType.CurlyOpen, "Missing '{' in block!");
+        while(!match(TokenType.CurlyClosed)) {
+            statements.add(parseStatement());
+        }
+        consume(TokenType.CurlyClosed, "Missing '}' in block!");
+        return new NodeBlock(statements);
+    }
+
+    private NodeAssignStatement parseAssignStatement() {
+        String identifier = consume(TokenType.Identifier, "Missing identifier!").lexeme;
+        consume(TokenType.Assign, "Missing '=' in assign-statement!");
+
+        NodeExpression expression = parseExpression(false);
+
+        endStatement();
+        return new NodeAssignStatement(identifier, expression);
+    }
+
+    private NodeAssignStatement parseAssignStatement(String identifier) {
+        consume(TokenType.Assign, "Missing '=' in assign-statement!");
+        NodeExpression expression = parseExpression(false);
+        return new NodeAssignStatement(identifier, expression);
+    }
+
     private void endStatement() {
-        if (peek().tokenType != TokenType.SemiColon)
+        if(!match(TokenType.SemiColon))
             throw new RuntimeException("Parser Error: ';' needed to end statement");
-        else advance();
-    }
-
-    // isElIf determines whether or not following if statements are else-if
-    public NodeExpression parseIfStatement(boolean isElif) {
-        if(!(peek().tokenType == TokenType.If)) throw new RuntimeException("This shouldn't happen!");
         advance();
-
-        if(!(peek().tokenType == TokenType.ParenthesesOpen)) throw new RuntimeException("Missing '('");
-        advance();
-
-        NodeExpression booleanExpression = parseExpression(true);
-        advance();
-        
-        return booleanExpression;
-    }
-
-    public void parseScope() {
-        if(!(peek().tokenType == TokenType.CurlyOpen)) throw new RuntimeException("Parser Error: Missing '{'");
-        
-    }
-
-    private void enterScope() {
-        if(!(peek().tokenType == TokenType.CurlyOpen)) throw new RuntimeException("Parser Error: Missing '{'");
-        program.addNode(new NodeEnterScope());
-        curlyDepth++;
-    }
-
-    private void exitScope() {
-        if(!(peek().tokenType == TokenType.CurlyOpen)) throw new RuntimeException("Parser Error: Missing '{'");
-        program.addNode(new NodeExitScope());
-        curlyDepth--;
-    }
-
-    public void loadTokens(List<Token> tokens) {
-        this.tokens = tokens;
     }
 
     public void print(Object x) {
         System.out.println(x);
+    }
+
+    // This will not advance but just check for TokenType
+    private boolean match(TokenType... types) {
+        for(TokenType type : types) {
+            if(check(type)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean check(TokenType type) {
+        if(isAtEnd()) return false;
+        return peek().tokenType == type;
+    }
+
+    // This will check for a single TokenType, advance and returns the token if found or throws exception if not
+    private Token consume(TokenType tokenType, String errorMsg) {
+        if(check(tokenType)) {
+            return advance();
+        } else throw new RuntimeException(errorMsg);
+    }
+
+    private Token peek(int amount) {
+        if (index <= tokens.size())
+            return tokens.get(index + amount);
+        else
+            return null;
+    }
+
+    private Token peek() {
+        return peek(0);
+    }
+
+    private Token advance() {
+        Token currentToken = peek();
+        index++;
+        return currentToken;
+    }
+
+    private boolean isAtEnd() {
+        return index >= tokens.size() || peek().tokenType == TokenType.EOF;
+    }
+
+    private boolean isExpressionToken(TokenType tokenType) {
+        return expressionTokens.contains(tokenType) ? true : false;
     }
 }
 

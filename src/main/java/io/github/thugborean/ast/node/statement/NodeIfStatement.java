@@ -4,22 +4,23 @@ import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.ast.visitor.ASTVisitor;
 
 public class NodeIfStatement extends NodeStatement{
-
     public NodeExpression booleanExpression;
-    public boolean isElif = false;
+    public NodeBlock thenBlock;
+    public NodeBlock elseBlock;
 
-    public NodeIfStatement(NodeExpression booleanExpression) {
+    public NodeIfStatement(NodeExpression booleanExpression, NodeBlock thenBlock) {
         this.booleanExpression = booleanExpression;
+        this.thenBlock = thenBlock;
     }
 
-    public NodeIfStatement(NodeExpression booleanExpression, boolean isElif) {
+    public NodeIfStatement(NodeExpression booleanExpression, NodeBlock thenBlock, NodeBlock elseBlock) {
         this.booleanExpression = booleanExpression;
-        isElif = true;
+        this.thenBlock = thenBlock;
+        this.elseBlock = elseBlock;
     }
 
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accept'");
+        return visitor.visitNodeIfStatement(this);
     }
 }

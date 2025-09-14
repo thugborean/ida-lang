@@ -17,7 +17,7 @@ public class VM {
 
     public void execute(String source) {
         parser = new Parser(lexer.tokenize(source));
-        program = parser.createAST();
+        program = parser.parseProgram();
         run(program);
     }
 
