@@ -60,7 +60,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
                 }
                 default: {
                     logger.severe("Unknown operator " + node.operator.lexeme);
-                    throw new RuntimeException("Interpreter Error: Couldn't find operator for expression!");
+                    throw new RuntimeException("Couldn't find operator for arithmetic expression!");
                 }
             }
         } else if(node.resolvedType == ValType.STRING) {
@@ -68,6 +68,36 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
             StringBuilder sB = new StringBuilder();
             sB.append(left.toString()).append(right.toString());
             return new Value(sB.toString());
+        } else if(node.resolvedType == ValType.BOOLEAN) {
+            switch(node.operator.tokenType) {
+                case TokenType.LessThan: {
+                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) <
+                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                }
+                case TokenType.LessThanOrEquals: {
+                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) <=
+                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                }
+                case TokenType.GreaterThan: {
+                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) >
+                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                }
+                case TokenType.GreaterThanOrEquals: {
+                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) >=
+                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                }
+                case TokenType.EqualsEquals: {
+                    
+                }
+                case TokenType.BangEquals: {
+                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) >=
+                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                }
+                default: {
+                    logger.severe("Unknown operator " + node.operator.lexeme);
+                    throw new RuntimeException("Couldn't find operator for boolean expression!");
+                }
+            }
         }
 
         return new Value(null); // This shouldn't happen
@@ -100,7 +130,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     }
 
     @Override
-    public Value visitExpressionStatement(NodeExpressionStatement node) {
+    public Value visitNodeExpressionStatement(NodeExpressionStatement node) {
         throw new UnsupportedOperationException("Unimplemented method 'visitExpressionStatement'");
     }
 
@@ -118,7 +148,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     // This function is a total disaster
     // This defines the new variable and gets its type and value
     @Override
-    public Value visitAssignStatement(NodeAssignStatement node) {
+    public Value visitNodeAssignStatement(NodeAssignStatement node) {
         String identifier = node.identifier;
         logger.info("Assigning to: " + identifier);
         Value assigned = node.expression.accept(this);

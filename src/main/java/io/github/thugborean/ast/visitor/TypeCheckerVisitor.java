@@ -47,13 +47,18 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         ValType.NULL
     );
 
-    private final Map<String, Set<ValType>> binaryOperatorRules = Map.of(
-        "+", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING),
-        "-", Set.of(ValType.NUMBER, ValType.DOUBLE),
-        "*", Set.of(ValType.NUMBER, ValType.DOUBLE),
-        "/", Set.of(ValType.NUMBER, ValType.DOUBLE),
-        "%", Set.of(ValType.NUMBER, ValType.DOUBLE),
-        "==", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)
+    private final Map<String, Set<ValType>> binaryOperatorRules = Map.ofEntries(
+        Map.entry("+", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING)),
+        Map.entry("-", Set.of(ValType.NUMBER, ValType.DOUBLE)),
+        Map.entry( "*", Set.of(ValType.NUMBER, ValType.DOUBLE)),
+        Map.entry("/", Set.of(ValType.NUMBER, ValType.DOUBLE)),
+        Map.entry("%", Set.of(ValType.NUMBER, ValType.DOUBLE)),
+        Map.entry("==", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)),
+        Map.entry("!=", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)),
+        Map.entry("<", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)),
+        Map.entry("<=", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)),
+        Map.entry(">", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)),
+        Map.entry(">=", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN))
     );
 
     @Override
@@ -77,7 +82,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         }
         logger.info(String.format("Checking Binary Expression, types %s, %s", lhs, rhs));
         // This means we're dealing with an arithmetic expression
-        if(expectedTypes.peekFirst() == ValType.NUMBER || expectedTypes.peekFirst() == ValType.DOUBLE) {
+        if(expectedTypes.peekLast() == ValType.NUMBER || expectedTypes.peekLast() == ValType.DOUBLE) {
             node.resolvedType = ValType.NUMBER;
             if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) {
                 logger.severe(String.format("Illegal type in arithmetic expression: %s and %s!", lhs, rhs));
@@ -91,16 +96,45 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             else return ValType.NUMBER;
         }
         // This means we're dealing with a string expression
-        else if(expectedTypes.peekFirst() == ValType.STRING) {
+        else if(expectedTypes.peekLast() == ValType.STRING) {
             node.resolvedType = ValType.STRING;
             // We want to enforce rules on literal values but not variable references
             if(node.leftHandSide instanceof NodeLiteral && !stringExpressionTypes.contains(lhs)) {
-                logger.severe(String.format("Illegal literal in string expression: %s + %s", lhs, rhs));
-                throw new RuntimeException(String.format("Illegal literal in string expression: %s + %s", lhs, rhs));
+                logger.severe(String.format("Illegal literal in string expression: %s and %s", lhs, rhs));
+                throw new RuntimeException(String.format("Illegal literal in string expression: %s and %s", lhs, rhs));
             }
             return ValType.STRING;
+        // Expected types being BOOLEAN means that essentialy the entire expression will be evaluated as true or false, does not mean that there can't be 
+        } else if(expectedTypes.peekLast() == ValType.BOOLEAN) {
+            // This is for comparisons
+            if(operator.equals("==") || operator.equals("!=") && isComparable(lhs, rhs)) {
+                if(isComparable(lhs, rhs)) {
+                    node.resolvedType = ValType.BOOLEAN;
+                    return ValType.BOOLEAN;
+                } else {
+                    logger.info(String.format("Illegal comparison: %S and %s", lhs, rhs));
+                    throw new RuntimeException(String.format("Illegal comparison: %S and %s", lhs, rhs));
+                }
+            }
+            // If it's not a straight comparison we won't allow strings or chars
+            if((lhs == ValType.STRING || rhs == ValType.STRING) || (rhs == ValType.CHARACTER || rhs == ValType.CHARACTER)) {
+                logger.severe("Strings and Characters can only be used in straight comparison inside boolean expressions!");
+                throw new RuntimeException("Strings and Characters can only be used in straight comparison inside boolean expressions!");
+            }
+            if(lhs == ValType.DOUBLE || rhs == ValType.DOUBLE) {
+                node.resolvedType = ValType.DOUBLE;
+                return ValType.DOUBLE;
+            }
+            if(lhs == ValType.NUMBER || rhs == ValType.NUMBER) {
+                node.resolvedType = ValType.NUMBER;
+                return ValType.NUMBER;
+            }
+            if(lhs == ValType.BOOLEAN || rhs == ValType.BOOLEAN) {
+                node.resolvedType = ValType.BOOLEAN;
+                return ValType.BOOLEAN;
+            }
+            // Might be all...
         }
-
         return ValType.NULL;
     }
 
@@ -112,7 +146,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodeVariableReference(NodeVariableReference node) {
         logger.info("Checking if Symbol is present: " + node.identifier);
-        if(!vm.getCurrentEnv().variableExists(node.identifier)) throw new RuntimeException("Unrecognized symbol " + node.identifier);
+        if(vm.getCurrentEnv().getVariable(node.identifier) == null) throw new RuntimeException("Unrecognized symbol " + node.identifier);
         return vm.getCurrentEnv().getVariable(node.identifier).getType();
     }
 
@@ -123,8 +157,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         logger.info("Variable identifier is: " + node.identifier);
 
         // This is the type we are expecting
-        ValType declaredType = node.type; // null? 
-        expectedTypes.offerFirst(declaredType);
+        ValType declaredType = node.type;
+        expectedTypes.offerLast(declaredType);
 
         logger.info("Variable type is " + declaredType);
 
@@ -134,19 +168,19 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             node.initializer.accept(this);
 
         // Remove the expected type from the context
-        expectedTypes.pollFirst();
+        expectedTypes.pollLast();
         return node.type;
     }
 
     @Override
-    public ValType visitExpressionStatement(NodeExpressionStatement node) {
+    public ValType visitNodeExpressionStatement(NodeExpressionStatement node) {
         // WIP
         node.accept(this);
         return null;
     }
 
     @Override
-    public ValType visitAssignStatement(NodeAssignStatement node) {
+    public ValType visitNodeAssignStatement(NodeAssignStatement node) {
         ValType type = vm.getCurrentEnv().getVariable(node.identifier).getType();
         // Check if the value we are assigning can be assigned to the current type
         if(!isAssignable(type, node.expression.accept(this))) {
@@ -155,6 +189,27 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         }
         logger.info(String.format("Type: %s is compatible with initializer: %s", type, node.expression.accept(this)));
         return node.expression.accept(this);
+    }
+
+    @Override
+    public ValType visitNodeIfStatement(NodeIfStatement node) {
+        logger.info("Checking an if-statement...");
+        expectedTypes.offerLast(ValType.BOOLEAN);
+        logger.info("Checking the condition...");
+        node.booleanExpression.accept(this);
+        logger.info("Condition is compatible");
+        expectedTypes.pollLast();
+
+        logger.info("Evaluating the then-block");
+        node.thenBlock.accept(this);
+        logger.info("The then-block has been evaluated");
+
+        if(node.elseBlock != null) {
+            logger.info("Evaluating the else-block");
+            node.elseBlock.accept(this);
+            logger.info("The else-block has been evaluated");
+        }
+        return null;
     }
 
     // This vistitor needs these specific methods
@@ -185,6 +240,13 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         if(declared == ValType.STRING && (actual == ValType.NUMBER || actual == ValType.DOUBLE)) return false;
         if(declared == ValType.NUMBER && actual == ValType.DOUBLE) return false;
         if(declared == ValType.DOUBLE && actual == ValType.NUMBER) return true; // Is allowed 
+        return false;
+    }
+
+    private boolean isComparable(ValType left, ValType right) {
+        if(left == right) return true;
+        if((left == ValType.NUMBER && right == ValType.DOUBLE) || left == ValType.DOUBLE && right == ValType.NUMBER) return true;
+        if((left == ValType.STRING && right == ValType.CHARACTER) || left == ValType.CHARACTER && right == ValType.STRING) return true;
         return false;
     }
 
