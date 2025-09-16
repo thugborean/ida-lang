@@ -8,14 +8,14 @@ public class Value {
         this.value = value;
     }
 
-    public int asNumber() {
+    public Integer asNumber() {
         if(!(value instanceof Integer)) throw new RuntimeException("EXPECTED NUMBER");
-        return (int)value;
+        return (Integer)value;
     }
 
-    public double asDouble() {
+    public Double asDouble() {
         if(!(value instanceof Double)) throw new RuntimeException("EXPECTED DOUBLE!");
-        return (double)value;
+        return (Double)value;
     }
 
     public String asString() {
@@ -30,7 +30,7 @@ public class Value {
 
     public Boolean asBool() {
         if(!(value instanceof Boolean)) throw new RuntimeException("EXPECTED BOOL!");
-        return (boolean)value;
+        return (Boolean)value;
     }
 
     public Object raw() {

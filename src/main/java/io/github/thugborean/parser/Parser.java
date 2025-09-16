@@ -38,6 +38,8 @@ public class Parser {
         TokenType.CharacterLiteral,
         TokenType.StringLiteral,
         TokenType.BooleanLiteral,
+        TokenType.True,
+        TokenType.False,
 
         TokenType.Plus,
         TokenType.PlusPlus,
@@ -70,7 +72,14 @@ public class Parser {
         TokenType.Divide,
         TokenType.Modulo,
 
-        TokenType.AtseriskAsterisk // ²
+        TokenType.AtseriskAsterisk, // ²
+
+        TokenType.LessThan,
+        TokenType.LessThanOrEquals,
+        TokenType.GreaterThan,
+        TokenType.GreaterThanOrEquals,
+        TokenType.EqualsEquals,
+        TokenType.BangEquals
     );
 
     public Program parseProgram() {
@@ -98,7 +107,7 @@ public class Parser {
         NodeExpression result;
         int depth = insideParentheses ? 1 : 0;
         while (true) {
-            if (peek().tokenType == TokenType.SemiColon) break;
+            if (peek().tokenType == TokenType.SemiColon || peek().tokenType == TokenType.CurlyOpen) break;
             // PARENTHESIS LOGIC
             if (peek().tokenType == TokenType.ParenthesesOpen) {
                 depth++;
@@ -126,15 +135,11 @@ public class Parser {
             } else
                 throw new RuntimeException("Parser Error: Unexpected Symbol '" + peek().tokenType + "' in expression");
         }
-        // Check if the expression is ended by a ';'
-        if (peek().tokenType != TokenType.SemiColon)
-            throw new RuntimeException("Parser Error: Expected ';' after expression");
         if (depth != 0)
-            throw new RuntimeException("Parser Error: '('' not closed properly");
+            throw new RuntimeException("Parser Error: '(' not closed properly");
         // Check if the expression is empty
         if (expressionTokens.isEmpty())
             throw new RuntimeException("Parser Error: Empty expression");
-        
         // We will use shuntingyard to turn the expression into RPN
         // RPN
         List<Token> solvingStack = shuntingYard(expressionTokens);
@@ -205,7 +210,7 @@ public class Parser {
                 stack.push(new NodeStringLiteral(token));
             } else if (token.tokenType == TokenType.CharacterLiteral) {
                 throw new RuntimeException("Char is unimplemented!");
-            } else if (token.tokenType == TokenType.BooleanLiteral) {
+            } else if (token.tokenType == TokenType.True || token.tokenType == TokenType.False) {
                 stack.push(new NodeBooleanLiteral(token));
             } else if (operators.contains(token.tokenType)) {
                 if (stack.size() < 2) {
@@ -228,17 +233,23 @@ public class Parser {
     private int getPrecedence(Token token) {
         switch (token.tokenType) {
             case Or:
-                return 0;
+            case LessThan:
+            case LessThanOrEquals:
+            case GreaterThan:
+            case GreaterThanOrEquals:
+            case EqualsEquals:
+                return 1;
+            case And:
+                return 2;
             case Plus:
             case Minus:
-            case And:
-                return 1;
+                return 3;
             case Multiply:
             case Divide:
             case Modulo:
-                return 2;
+                return 4;
             case AtseriskAsterisk:
-                return 3;
+                return 5;
             case Assign:
                 return -1;
             default:
@@ -296,7 +307,7 @@ public class Parser {
 
         if(match(TokenType.Else)) {
             consume(TokenType.Else, "Missing else block in if-statement!");
-            NodeBlock elseBlock = parseBlock();
+            NodeStatement elseBlock = parseBlock();
             return new NodeIfStatement(condition, thenblock, elseBlock);
         } else {
             return new NodeIfStatement(condition, thenblock);

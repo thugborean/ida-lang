@@ -38,13 +38,13 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         ValType.CHARACTER
     );
 
-    private final Set<ValType> booleanExpressionTypes = Set.of(
-        ValType.NUMBER,
-        ValType.DOUBLE,
-        ValType.STRING,
-        ValType.CHARACTER,
-        ValType.BOOLEAN,
-        ValType.NULL
+    private final Set<String> booleanOperatorTypes = Set.of(
+        "==",
+        "!=",
+        "<",
+        "<=",
+        ">",
+        ">="
     );
 
     private final Map<String, Set<ValType>> binaryOperatorRules = Map.ofEntries(
@@ -104,36 +104,36 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
                 throw new RuntimeException(String.format("Illegal literal in string expression: %s and %s", lhs, rhs));
             }
             return ValType.STRING;
-        // Expected types being BOOLEAN means that essentialy the entire expression will be evaluated as true or false, does not mean that there can't be 
+        // Expected types being BOOLEAN means that essentialy the entire expression will be evaluated as true or false, does not mean that there can't be other expressions types in the expression
         } else if(expectedTypes.peekLast() == ValType.BOOLEAN) {
-            // This is for comparisons
-            if(operator.equals("==") || operator.equals("!=") && isComparable(lhs, rhs)) {
-                if(isComparable(lhs, rhs)) {
-                    node.resolvedType = ValType.BOOLEAN;
-                    return ValType.BOOLEAN;
-                } else {
+            if(booleanOperatorTypes.contains(operator) && !isComparable(lhs, rhs)) {
                     logger.info(String.format("Illegal comparison: %S and %s", lhs, rhs));
                     throw new RuntimeException(String.format("Illegal comparison: %S and %s", lhs, rhs));
+            }
+            // This is for comparisons
+            if(booleanOperatorTypes.contains(operator)) {
+                    node.resolvedType = ValType.BOOLEAN;
+                    return ValType.BOOLEAN;
+            } else {
+                // If it's not a straight comparison we won't allow strings or chars
+                if((lhs == ValType.STRING || rhs == ValType.STRING) || (rhs == ValType.CHARACTER || rhs == ValType.CHARACTER)) {
+                    logger.severe("Strings and Characters can only be used in straight comparison inside boolean expressions!");
+                    throw new RuntimeException("Strings and Characters can only be used in straight comparison inside boolean expressions!");
                 }
+                if(lhs == ValType.DOUBLE || rhs == ValType.DOUBLE) {
+                    node.resolvedType = ValType.DOUBLE;
+                    return ValType.DOUBLE;
+                } else
+                if(lhs == ValType.NUMBER || rhs == ValType.NUMBER) {
+                    node.resolvedType = ValType.NUMBER;
+                    return ValType.NUMBER;
+                } else
+                if(lhs == ValType.BOOLEAN || rhs == ValType.BOOLEAN) {
+                    node.resolvedType = ValType.BOOLEAN;
+                    return ValType.BOOLEAN;
+                }
+                // Might be all...
             }
-            // If it's not a straight comparison we won't allow strings or chars
-            if((lhs == ValType.STRING || rhs == ValType.STRING) || (rhs == ValType.CHARACTER || rhs == ValType.CHARACTER)) {
-                logger.severe("Strings and Characters can only be used in straight comparison inside boolean expressions!");
-                throw new RuntimeException("Strings and Characters can only be used in straight comparison inside boolean expressions!");
-            }
-            if(lhs == ValType.DOUBLE || rhs == ValType.DOUBLE) {
-                node.resolvedType = ValType.DOUBLE;
-                return ValType.DOUBLE;
-            }
-            if(lhs == ValType.NUMBER || rhs == ValType.NUMBER) {
-                node.resolvedType = ValType.NUMBER;
-                return ValType.NUMBER;
-            }
-            if(lhs == ValType.BOOLEAN || rhs == ValType.BOOLEAN) {
-                node.resolvedType = ValType.BOOLEAN;
-                return ValType.BOOLEAN;
-            }
-            // Might be all...
         }
         return ValType.NULL;
     }

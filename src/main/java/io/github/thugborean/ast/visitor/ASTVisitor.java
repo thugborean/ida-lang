@@ -29,9 +29,9 @@ public interface ASTVisitor<T> {
     T visitNodeDecrement(NodeDecrement node);
     // Visiting NodeStatement
     T visitNodeVariableDeclaration(NodeVariableDeclaration node);
-    T visitExpressionStatement(NodeExpressionStatement node);
+    T visitNodeExpressionStatement(NodeExpressionStatement node);
     T visitNodePrintStatement(NodePrintStatement node);
-    T visitAssignStatement(NodeAssignStatement node);
+    T visitNodeAssignStatement(NodeAssignStatement node);
     // Visit NodeScope
     T visitNodeEnterScope(NodeEnterScope node);
     T visitNodeExitScope(NodeExitScope node);

@@ -37,6 +37,7 @@ public class Lexer {
 
             // Loops and control flow
             Map.entry("if", TokenType.If),
+            Map.entry("else", TokenType.Else),
             Map.entry("while", TokenType.While),
             Map.entry("for", TokenType.For),
             Map.entry("do", TokenType.Do),

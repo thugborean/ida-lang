@@ -1,7 +1,7 @@
-num a = 4 + 2;
-a = 3;
-{
-    num a = 12;
+num a = 3;
+if(a == 3) {
+    print("hej");
+} else {
+    num a = 123;
     print(a);
 }
-print(a);

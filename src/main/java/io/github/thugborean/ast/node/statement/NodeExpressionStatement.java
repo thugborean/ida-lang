@@ -12,6 +12,6 @@ public class NodeExpressionStatement extends NodeStatement {
 
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
-        return visitor.visitExpressionStatement(this);
+        return visitor.visitNodeExpressionStatement(this);
     }
 }

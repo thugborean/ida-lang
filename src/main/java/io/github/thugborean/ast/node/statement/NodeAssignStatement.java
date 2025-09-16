@@ -13,6 +13,6 @@ public class NodeAssignStatement extends NodeExpressionStatement {
 
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
-        return visitor.visitAssignStatement(this);
+        return visitor.visitNodeAssignStatement(this);
     }
 }

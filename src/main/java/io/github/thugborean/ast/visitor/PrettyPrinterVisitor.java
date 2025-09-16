@@ -90,13 +90,13 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     }
 
     @Override
-    public Void visitExpressionStatement(NodeExpressionStatement node) {
+    public Void visitNodeExpressionStatement(NodeExpressionStatement node) {
         node.expression.accept(this);
         return null;
     }
 
     @Override
-    public Void visitAssignStatement(NodeAssignStatement node) {
+    public Void visitNodeAssignStatement(NodeAssignStatement node) {
         line("Assign Statement: ");
         indentLevel++;
 
@@ -149,6 +149,12 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     }
 
     @Override
+    public Void visitNodeBooleanLiteral(NodeBooleanLiteral node) {
+        line(node.token.lexeme);
+        return null;
+    }
+
+    @Override
     public Void visitNodeNullLiteral(NodeNullLiteral node) {
         line(node.token.lexeme);
         return null;
@@ -172,10 +178,5 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     @Override
     public Void visitNodeExitScope(NodeExitScope node) {
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeExitScope'");
-    }
-
-    @Override
-    public Void visitNodeBooleanLiteral(NodeBooleanLiteral node) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitNodeBooleanLiteral'");
     }
 }

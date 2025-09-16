@@ -69,29 +69,27 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
             sB.append(left.toString()).append(right.toString());
             return new Value(sB.toString());
         } else if(node.resolvedType == ValType.BOOLEAN) {
+            Object lval = left.raw();
+            Object rval = right.raw();
+
             switch(node.operator.tokenType) {
                 case TokenType.LessThan: {
-                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) <
-                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                    return new Value(lessThan(lval, rval));
                 }
                 case TokenType.LessThanOrEquals: {
-                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) <=
-                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                    return new Value(lessThanOrEquals(lval, rval));
                 }
                 case TokenType.GreaterThan: {
-                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) >
-                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                    return new Value(greaterThan(lval, rval));
                 }
                 case TokenType.GreaterThanOrEquals: {
-                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) >=
-                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                    return new Value(greaterThanOrEquals(lval, rval));
                 }
                 case TokenType.EqualsEquals: {
-                    
+                    return new Value(Equals(lval, rval));
                 }
                 case TokenType.BangEquals: {
-                    return new Value((left.getType() == ValType.NUMBER ? left.asNumber() : left.asDouble()) >=
-                            (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
+                    return new Value(bangEquals(lval, rval));
                 }
                 default: {
                     logger.severe("Unknown operator " + node.operator.lexeme);
@@ -181,6 +179,22 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         return null;
     }
 
+    @Override
+    public Value visitNodeIfStatement(NodeIfStatement node) {
+        logger.info("Visiting if-statement...");
+        Value condition = node.booleanExpression.accept(this);
+        if(condition.getType() != ValType.BOOLEAN) throw new RuntimeException("If-statement condition was not a boolean, we messed up somewhere!");
+        if(condition.asBool()) {
+            logger.info("Condition was evaluated to true, executing then-block");
+            node.thenBlock.accept(this);
+        }
+        else if(node.elseBlock != null) {
+                node.elseBlock.accept(this);
+                logger.info("Condition was evaluated to false, executing else-block");
+        } else logger.info("Condition was evaluated to false, continuing program");
+        return null;
+    }
+
     public void print(Object x) {
         System.out.println(x);
     }
@@ -246,5 +260,56 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         logger.info("Exiting scope, level: " + Environment.globalScopeDepth);
         vm.exitScope();
         return null;
+    }
+
+    private Boolean lessThan(Object l, Object r) {
+        if(!(l instanceof Integer || l instanceof Double) || !(r instanceof Integer || r instanceof Double))
+            throw new RuntimeException("The typechecker messed up! We shouldn't get to this point!");
+        // Abomination...
+        if(l instanceof Integer li && r instanceof Integer ri) return Boolean.valueOf(li < ri);
+        if(l instanceof Double ld && r instanceof Double rd) return Boolean.valueOf(ld < rd);
+        if(l instanceof Integer li && r instanceof Double rd) return Boolean.valueOf(li < rd);
+        if(l instanceof Double ld && r instanceof Integer ri) return Boolean.valueOf(ld < ri);
+
+        return false;
+    }
+    private Boolean lessThanOrEquals(Object l, Object r) {
+        if(!(l instanceof Integer || l instanceof Double) || !(r instanceof Integer || r instanceof Double))
+            throw new RuntimeException("The typechecker messed up! We shouldn't get to this point!");
+        // Abomination...
+        if(l instanceof Integer li && r instanceof Integer ri) return Boolean.valueOf(li <= ri);
+        if(l instanceof Double ld && r instanceof Double rd) return Boolean.valueOf(ld <= rd);
+        if(l instanceof Integer li && r instanceof Double rd) return Boolean.valueOf(li <= rd);
+        if(l instanceof Double ld && r instanceof Integer ri) return Boolean.valueOf(ld <= ri);
+
+        return false;
+    }
+        private Boolean greaterThan(Object l, Object r) {
+            if(!(l instanceof Integer || l instanceof Double) || !(r instanceof Integer || r instanceof Double))
+                throw new RuntimeException("The typechecker messed up! We shouldn't get to this point!");
+            // Abomination...
+            if(l instanceof Integer li && r instanceof Integer ri) return Boolean.valueOf(li > ri);
+            if(l instanceof Double ld && r instanceof Double rd) return Boolean.valueOf(ld > rd);
+            if(l instanceof Integer li && r instanceof Double rd) return Boolean.valueOf(li > rd);
+            if(l instanceof Double ld && r instanceof Integer ri) return Boolean.valueOf(ld > ri);
+
+            return false;
+    }
+        private Boolean greaterThanOrEquals(Object l, Object r) {
+            if(!(l instanceof Integer || l instanceof Double) || !(r instanceof Integer || r instanceof Double))
+                throw new RuntimeException("The typechecker messed up! We shouldn't get to this point!");
+            // Abomination...
+            if(l instanceof Integer li && r instanceof Integer ri) return Boolean.valueOf(li >= ri);
+            if(l instanceof Double ld && r instanceof Double rd) return Boolean.valueOf(ld >= rd);
+            if(l instanceof Integer li && r instanceof Double rd) return Boolean.valueOf(li >= rd);
+            if(l instanceof Double ld && r instanceof Integer ri) return Boolean.valueOf(ld >= ri);
+
+            return false;
+    }
+        private Boolean Equals(Object l, Object r) {
+            return Boolean.valueOf(l.equals(r));
+    }
+        private Boolean bangEquals(Object l, Object r) {
+            return Boolean.valueOf(!l.equals(r));
     }
 }
