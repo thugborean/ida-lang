@@ -95,6 +95,7 @@ public class Parser {
 
     private NodeStatement parseStatement() {
         if(match(TokenType.If)) return parseIfStatement();
+        if(match(TokenType.While)) return parseWhileStatement();
         if(match(TokenType.Number, TokenType.Double, TokenType.String, TokenType.Boolean)) return parseVariableDeclaration();
         if(match(TokenType.Print)) return parsePrintStatement();
         if(match(TokenType.CurlyOpen)) return parseBlock();
@@ -301,16 +302,16 @@ public class Parser {
         consume(TokenType.If, "Missing 'if' token in if-statement!");
         consume(TokenType.ParenthesesOpen, "Missing '(' before expression!");
         NodeExpression condition = parseExpression(true);
-        NodeBlock thenblock;
-        if(match(TokenType.CurlyOpen)) thenblock = parseBlock();
+        NodeBlock thenBlock;
+        if(match(TokenType.CurlyOpen)) thenBlock = parseBlock();
             else throw new RuntimeException("Missing '{' in if-statement!");
 
         if(match(TokenType.Else)) {
             consume(TokenType.Else, "Missing else block in if-statement!");
-            NodeStatement elseBlock = parseBlock();
-            return new NodeIfStatement(condition, thenblock, elseBlock);
+            NodeStatement elseBlock = parseStatement();
+            return new NodeIfStatement(condition, thenBlock, elseBlock);
         } else {
-            return new NodeIfStatement(condition, thenblock);
+            return new NodeIfStatement(condition, thenBlock);
         }
     }
 
@@ -322,6 +323,19 @@ public class Parser {
         }
         consume(TokenType.CurlyClosed, "Missing '}' in block!");
         return new NodeBlock(statements);
+    }
+
+    private NodeWhileStatement parseWhileStatement() {
+        consume(TokenType.While, "Missing 'while' in while-statement");
+        consume(TokenType.ParenthesesOpen, "Missing '(' in while-statement");
+
+        NodeExpression condition = parseExpression(true);
+        NodeBlock thenBlock;
+
+        if(match(TokenType.CurlyOpen)) thenBlock = parseBlock();
+            else throw new RuntimeException("Missing '{' in while-statement!");
+
+        return new NodeWhileStatement(condition, thenBlock);
     }
 
     private NodeAssignStatement parseAssignStatement() {

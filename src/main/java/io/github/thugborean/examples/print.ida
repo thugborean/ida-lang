@@ -1,7 +1,1 @@
-num a = 3;
-if(a == 3) {
-    print("hej");
-} else {
-    num a = 123;
-    print(a);
-}
+num a = a + 1;

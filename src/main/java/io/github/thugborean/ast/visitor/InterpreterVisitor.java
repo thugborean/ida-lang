@@ -185,13 +185,31 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         Value condition = node.booleanExpression.accept(this);
         if(condition.getType() != ValType.BOOLEAN) throw new RuntimeException("If-statement condition was not a boolean, we messed up somewhere!");
         if(condition.asBool()) {
-            logger.info("Condition was evaluated to true, executing then-block");
+            logger.info("Condition was evaluated as true, executing then-block");
             node.thenBlock.accept(this);
-        }
-        else if(node.elseBlock != null) {
+        } else if(node.elseBlock != null) {
                 node.elseBlock.accept(this);
-                logger.info("Condition was evaluated to false, executing else-block");
-        } else logger.info("Condition was evaluated to false, continuing program");
+                logger.info("Condition was evaluated as false, executing else-block");
+        } else logger.info("Condition was evaluated as false, continuing program");
+        return null;
+    }
+
+    @Override
+    public Value visitNodeWhileStatement(NodeWhileStatement node) {
+        logger.info("Visiting while-statement...");
+        Value condition = node.booleanExpression.accept(this);
+        if(condition.getType() != ValType.BOOLEAN) throw new RuntimeException("While-statement condition was not a boolean, we messed up somewhere!");
+
+
+        if(condition.asBool()) {
+            while(condition.asBool()) {
+                logger.info("Condition was evaluated to true, executing then-block");
+                node.thenBlock.accept(this);
+                condition = node.booleanExpression.accept(this); // REMEMBER TO UPDATE CONDITION
+            }
+        } else logger.info("Condition was evaluated as false, continuing program");
+
+        logger.info("Breaking the while-loop");
         return null;
     }
 

@@ -39,4 +39,5 @@ public interface ASTVisitor<T> {
     default T visitNodeType(NodeType node){return null;}
     default T visitNodeBlock(NodeBlock nodeBlock){return null;}
     default T visitNodeIfStatement(NodeIfStatement nodeIfStatement){return null;}
+    default T visitNodeWhileStatement(NodeWhileStatement nodeWhileStatement){return null;}
 }

@@ -135,7 +135,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
                 // Might be all...
             }
         }
-        return ValType.NULL;
+        return ValType.NULL; // This seems to be the culprit of some bugs...
     }
 
     @Override
@@ -182,11 +182,15 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodeAssignStatement(NodeAssignStatement node) {
         ValType type = vm.getCurrentEnv().getVariable(node.identifier).getType();
+
+        expectedTypes.offerLast(type);
         // Check if the value we are assigning can be assigned to the current type
         if(!isAssignable(type, node.expression.accept(this))) {
             logger.severe(String.format("Found illegal assignment: %s != %s", type, node.expression.accept(this)));
             throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.expression.accept(this));
         }
+        expectedTypes.pollLast();
+
         logger.info(String.format("Type: %s is compatible with initializer: %s", type, node.expression.accept(this)));
         return node.expression.accept(this);
     }
@@ -209,6 +213,22 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             node.elseBlock.accept(this);
             logger.info("The else-block has been evaluated");
         }
+        return null;
+    }
+
+    @Override
+    public ValType visitNodeWhileStatement(NodeWhileStatement node) {
+        logger.info("Checking a while-statement...");
+        expectedTypes.offerLast(ValType.BOOLEAN);
+        logger.info("Checking the condition...");
+        node.booleanExpression.accept(this);
+        logger.info("Condition is compatible");
+        expectedTypes.pollLast();
+
+        logger.info("Evaluating the then-block");
+        node.thenBlock.accept(this);
+        logger.info("The then-block has been evaluated");
+
         return null;
     }
 
