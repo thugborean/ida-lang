@@ -200,7 +200,6 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         Value condition = node.booleanExpression.accept(this);
         if(condition.getType() != ValType.BOOLEAN) throw new RuntimeException("While-statement condition was not a boolean, we messed up somewhere!");
 
-
         if(condition.asBool()) {
             while(condition.asBool()) {
                 logger.info("Condition was evaluated to true, executing then-block");
@@ -234,7 +233,9 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
     @Override
     public Value visitNodeBooleanLiteral(NodeBooleanLiteral node) {
-        return new Value(node.getValue());
+        // This is ugly but I don't care
+        Boolean val = Boolean.valueOf(node.token.lexeme.equals("true"));
+        return new Value(val);
     }
 
     @Override

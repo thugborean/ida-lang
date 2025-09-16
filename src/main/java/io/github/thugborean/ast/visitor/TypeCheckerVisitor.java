@@ -17,8 +17,9 @@ import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.VM;
 import io.github.thugborean.vm.symbol.*;
 
+// TODO: Fix variables being able to use themselves upon declaration
 public class TypeCheckerVisitor implements ASTVisitor<ValType> {
-    // Create the logger and give it the class' name
+    // Create the logger and give it the class name
     private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
     private final Deque<ValType> expectedTypes = new ArrayDeque<>();
     private final VM vm;

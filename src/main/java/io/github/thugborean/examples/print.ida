@@ -1,1 +1,4 @@
-num a = a + 1;
+bool a = true;
+if(a == true) {
+    print("hej");
+}
