@@ -30,6 +30,40 @@ java -jar target/ida-lang-1.0-SNAPSHOT.jar examples/examplefile.ida
 </pre>
 Note that running without args will launch into a REPL debug mode
 
+**Grammar:**
+
+<pre>
+program → statement* EOF ;
+ 
+statement → expressionStatement | ifStatement | whileStatement | variableDeclaration | printStatement | block ;
+
+expressionStatement → expression “;” ;
+
+expression → literal | variableReference | binaryExpression ;
+
+literal → NUMBER | DOUBLE | STRING | “true” | “false” | “null” ;
+
+variableReference → IDENTIFIER ;
+
+binaryExpression → expression operator expression ;
+
+operand → literal | IDENTIFIER ;
+
+operator → “+” | “- “ | “*” | “%” | “==” | “!=” | “<” | “<=” | “>” | “>=” ;
+
+ifStatement → “if” “(“ expression “)” block (“else” (block | ifStatement))? ;
+
+whileStatement → “while” “(“ expression “)” block ;
+
+variableDeclaration → type IDENTIFIER ( “=” expression)? “;” ;
+
+type → “num” | “double” | “string” | “bool” ;
+
+printStatement → “print” “(“ expression “)” “;” ;
+
+block → “{“ statement* “}” ;
+</pre>
+
 **Prerequisites**:
 
   * Maven v3.9.9+
