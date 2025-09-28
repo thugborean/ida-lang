@@ -3,10 +3,10 @@
 **Summary**:
 
 IDA is a custom made, statically typed, JVM-based, interpreted, high-level programming language. It is currently being developed by Lund University CompSci student Alexander Mårtensson. The language interpreter is meant to be a toy-interpreter and a passion project.
-The goal and purpose of the language is to combine several things:
-  * A modern JVM-based pseudo-scripting language that will be easy to use and pick up.
+
+The goal and purpose of the language is to combine two things:
+  * A modern JVM-based language that will be straighforward easy to use and pick up.
   * The use of structs and composition for custom datatypes (instead of OOP).
-  * A stricter more formal take on a modern scripting language, straying from the likes of Python and Lua.
 
 **Usage**:
 
@@ -29,6 +29,40 @@ mvn package
 java -jar target/ida-lang-1.0-SNAPSHOT.jar examples/examplefile.ida
 </pre>
 Note that running without args will launch into a REPL debug mode
+
+**Grammar:**
+
+<pre>
+program → statement* EOF ;
+ 
+statement → expressionStatement | ifStatement | whileStatement | variableDeclaration | printStatement | block ;
+
+expressionStatement → expression “;” ;
+
+expression → literal | variableReference | binaryExpression ;
+
+literal → NUMBER | DOUBLE | STRING | “true” | “false” | “null” ;
+
+variableReference → IDENTIFIER ;
+
+binaryExpression → expression operator expression ;
+
+operand → literal | IDENTIFIER ;
+
+operator → “+” | “-“ | “*” | “%” | “==” | “!=” | “<” | “<=” | “>” | “>=” ;
+
+ifStatement → “if” “(“ expression “)” block (“else” (block | ifStatement))? ;
+
+whileStatement → “while” “(“ expression “)” block ;
+
+variableDeclaration → type IDENTIFIER ( “=” expression)? “;” ;
+
+type → “num” | “double” | “string” | “bool” ;
+
+printStatement → “print” “(“ expression “)” “;” ;
+
+block → “{“ statement* “}” ;
+</pre>
 
 **Prerequisites**:
 
