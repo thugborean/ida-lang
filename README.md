@@ -3,6 +3,7 @@
 **Summary**:
 
 IDA is a custom made, statically typed, JVM-based, interpreted, high-level programming language. It is currently being developed by Lund University CompSci student Alexander Mårtensson. The language interpreter is meant to be a toy-interpreter and a passion project.
+
 The goal and purpose of the language is to combine two things:
   * A modern JVM-based language that will be straighforward easy to use and pick up.
   * The use of structs and composition for custom datatypes (instead of OOP).
