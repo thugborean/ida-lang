@@ -17,7 +17,7 @@ import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.VM;
 import io.github.thugborean.vm.symbol.*;
 
-// TODO: Fix variables being able to use themselves upon declaration
+// TODO: Fix variables being able to use themselves upon declaration, fix double casting inside boolean expressions
 public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     // Create the logger and give it the class name
     private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
@@ -266,7 +266,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     private boolean isComparable(ValType left, ValType right) {
         if(left == right) return true;
-        if((left == ValType.NUMBER && right == ValType.DOUBLE) || left == ValType.DOUBLE && right == ValType.NUMBER) return true;
+        if((left == ValType.NUMBER && right == ValType.DOUBLE) || left == ValType.DOUBLE && right == ValType.NUMBER) return false;
         if((left == ValType.STRING && right == ValType.CHARACTER) || left == ValType.CHARACTER && right == ValType.STRING) return true;
         return false;
     }

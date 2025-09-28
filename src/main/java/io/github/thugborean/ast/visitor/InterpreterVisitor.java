@@ -153,10 +153,11 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         ValType type = vm.getCurrentEnv().getVariable(node.identifier).getType();
         Object raw = assigned.value;
         Value finalValue;
+    
         // Check if casting is needed
         if (type == ValType.DOUBLE) {
             if (assigned.getType() == ValType.NUMBER)
-                finalValue = new Value(((Integer)raw).doubleValue());
+                finalValue = new Value(((Double)raw).doubleValue());
             else if (assigned.getType() == ValType.DOUBLE)
                 finalValue = assigned; // ???? redundant mayhaps
             else if (assigned.getType() == ValType.NULL)
@@ -303,32 +304,34 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
         return false;
     }
-        private Boolean greaterThan(Object l, Object r) {
-            if(!(l instanceof Integer || l instanceof Double) || !(r instanceof Integer || r instanceof Double))
-                throw new RuntimeException("The typechecker messed up! We shouldn't get to this point!");
-            // Abomination...
-            if(l instanceof Integer li && r instanceof Integer ri) return Boolean.valueOf(li > ri);
-            if(l instanceof Double ld && r instanceof Double rd) return Boolean.valueOf(ld > rd);
-            if(l instanceof Integer li && r instanceof Double rd) return Boolean.valueOf(li > rd);
-            if(l instanceof Double ld && r instanceof Integer ri) return Boolean.valueOf(ld > ri);
+    private Boolean greaterThan(Object l, Object r) {
+        if(!(l instanceof Integer || l instanceof Double) || !(r instanceof Integer || r instanceof Double))
+            throw new RuntimeException("The typechecker messed up! We shouldn't get to this point!");
+        // Abomination...
+        if(l instanceof Integer li && r instanceof Integer ri) return Boolean.valueOf(li > ri);
+        if(l instanceof Double ld && r instanceof Double rd) return Boolean.valueOf(ld > rd);
+        if(l instanceof Integer li && r instanceof Double rd) return Boolean.valueOf(li > rd);
+        if(l instanceof Double ld && r instanceof Integer ri) return Boolean.valueOf(ld > ri);
 
-            return false;
+        return false;
     }
-        private Boolean greaterThanOrEquals(Object l, Object r) {
-            if(!(l instanceof Integer || l instanceof Double) || !(r instanceof Integer || r instanceof Double))
-                throw new RuntimeException("The typechecker messed up! We shouldn't get to this point!");
-            // Abomination...
-            if(l instanceof Integer li && r instanceof Integer ri) return Boolean.valueOf(li >= ri);
-            if(l instanceof Double ld && r instanceof Double rd) return Boolean.valueOf(ld >= rd);
-            if(l instanceof Integer li && r instanceof Double rd) return Boolean.valueOf(li >= rd);
-            if(l instanceof Double ld && r instanceof Integer ri) return Boolean.valueOf(ld >= ri);
+    private Boolean greaterThanOrEquals(Object l, Object r) {
+        if(!(l instanceof Integer || l instanceof Double) || !(r instanceof Integer || r instanceof Double))
+            throw new RuntimeException("The typechecker messed up! We shouldn't get to this point!");
+        // Abomination...
+        if(l instanceof Integer li && r instanceof Integer ri) return Boolean.valueOf(li >= ri);
+        if(l instanceof Double ld && r instanceof Double rd) return Boolean.valueOf(ld >= rd);
+        if(l instanceof Integer li && r instanceof Double rd) return Boolean.valueOf(li >= rd);
+        if(l instanceof Double ld && r instanceof Integer ri) return Boolean.valueOf(ld >= ri);
 
-            return false;
+        return false;
     }
-        private Boolean Equals(Object l, Object r) {
-            return Boolean.valueOf(l.equals(r));
+
+    private Boolean Equals(Object l, Object r) {
+        return Boolean.valueOf(l.equals(r));
     }
-        private Boolean bangEquals(Object l, Object r) {
-            return Boolean.valueOf(!l.equals(r));
+
+    private Boolean bangEquals(Object l, Object r) {
+        return Boolean.valueOf(!l.equals(r));
     }
 }

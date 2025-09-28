@@ -1,3 +1,7 @@
 num target = 4;
 
-if(target % )
+if(target % 2 == 0) {
+    print("even");
+} else {
+    print("odd");
+}
