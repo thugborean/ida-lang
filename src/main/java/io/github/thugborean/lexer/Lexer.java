@@ -42,10 +42,10 @@ public class Lexer {
             Map.entry("for", TokenType.For),
             Map.entry("do", TokenType.Do),
 
-            // Visibility WIP
-            Map.entry("export", TokenType.Export),
-            Map.entry("global", TokenType.Global),
-            Map.entry("hidden", TokenType.Hidden));
+            // Modifiers
+            Map.entry("pub", TokenType.Public),
+            Map.entry("pri", TokenType.Private),
+            Map.entry("fin", TokenType.Final));
 
     private static final Map<String, TokenType> operators = Map.ofEntries(
             // Operators
@@ -87,7 +87,8 @@ public class Lexer {
             Map.entry("}", TokenType.CurlyClosed),
             Map.entry(";", TokenType.SemiColon),
             Map.entry(".", TokenType.Dot),
-            Map.entry(",", TokenType.Comma));
+            Map.entry(",", TokenType.Comma),
+            Map.entry("&", TokenType.Address));
 
     public List<Token> tokenize(String source) {
         this.tokens.clear();

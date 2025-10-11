@@ -1,9 +1,14 @@
 package io.github.thugborean.vm.symbol;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Variable implements Symbol{
 
     private final ValType type;
     private Value value;
+    
+    public Set<Modifiers> modifiers = new HashSet<>();
 
     public Variable(ValType type, Value value) {
         this.type = type;

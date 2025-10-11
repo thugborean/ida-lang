@@ -25,10 +25,10 @@ public enum TokenType {
     DoubleQuote, // "
     SingleQuote, // '
 
-    // Used on variables to assign their visibility
-    Export, 
-    Global, 
-    Hidden,
+    // Modifiers
+    Public,
+    Private, 
+    Final,
 
     // Two-character operators
     PlusPlus, // ++
@@ -80,6 +80,7 @@ public enum TokenType {
     SemiColon,
     Dot, // .
     Comma, // ,
+    Address, // &
 
     // EOF
     EOF,
