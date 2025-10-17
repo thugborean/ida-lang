@@ -64,6 +64,14 @@ printStatement → “print” “(“ expression “)” “;” ;
 block → “{“ statement* “}” ;
 </pre>
 
+**Process from source file to running program**:
+
+* Lexer takes the raw input and breaks it into tokens.
+* Parser creates an AST (Abstract Syntax Tree) from the list of tokens.
+* AST is a tree representation of the program's structure and grammatical meaning. Each node in the tree is a language construct.
+* TypeCheckerVisitor walks the tree and enforces type checking and various other rules. If we encounter unwanted behaviour here we end and throw an exception.
+* InterpreterVisitor walks the tree and implements the logic, feeling free to do so because the TypeChecker has enforced the semantic ground rules.
+
 **Prerequisites**:
 
   * Maven v3.9.9+
