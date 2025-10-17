@@ -21,7 +21,7 @@ import io.github.thugborean.vm.symbol.*;
 public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     // Create the logger and give it the class name
     private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
-    private final Deque<ValType> expectedTypes = new ArrayDeque<>();
+    private final Deque<ValType> contextStack = new ArrayDeque<>();
     private final VM vm;
 
     public TypeCheckerVisitor(Environment environment, VM vm) {
@@ -83,7 +83,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         }
         logger.info(String.format("Checking Binary Expression, types %s, %s", lhs, rhs));
         // This means we're dealing with an arithmetic expression
-        if(expectedTypes.peekLast() == ValType.NUMBER || expectedTypes.peekLast() == ValType.DOUBLE) {
+        if(contextStack.peekLast() == ValType.NUMBER || contextStack.peekLast() == ValType.DOUBLE) {
             node.resolvedType = ValType.NUMBER;
             if (!reugularExpressionTypes.contains(lhs) || !reugularExpressionTypes.contains(rhs)) {
                 logger.severe(String.format("Illegal type in arithmetic expression: %s and %s!", lhs, rhs));
@@ -97,7 +97,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             else return ValType.NUMBER;
         }
         // This means we're dealing with a string expression
-        else if(expectedTypes.peekLast() == ValType.STRING) {
+        else if(contextStack.peekLast() == ValType.STRING) {
             node.resolvedType = ValType.STRING;
             // We want to enforce rules on literal values but not variable references
             if(node.leftHandSide instanceof NodeLiteral && !stringExpressionTypes.contains(lhs)) {
@@ -106,7 +106,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             }
             return ValType.STRING;
         // Expected types being BOOLEAN means that essentialy the entire expression will be evaluated as true or false, does not mean that there can't be other expressions types in the expression
-        } else if(expectedTypes.peekLast() == ValType.BOOLEAN) {
+        } else if(contextStack.peekLast() == ValType.BOOLEAN) {
             if(booleanOperatorTypes.contains(operator) && !isComparable(lhs, rhs)) {
                     logger.info(String.format("Illegal comparison: %S and %s", lhs, rhs));
                     throw new RuntimeException(String.format("Illegal comparison: %S and %s", lhs, rhs));
@@ -159,7 +159,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
         // This is the type we are expecting
         ValType declaredType = node.type;
-        expectedTypes.offerLast(declaredType);
+        contextStack.offerLast(declaredType);
 
         logger.info("Variable type is " + declaredType);
 
@@ -169,7 +169,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             node.initializer.accept(this);
 
         // Remove the expected type from the context
-        expectedTypes.pollLast();
+        contextStack.pollLast();
         return node.type;
     }
 
@@ -184,13 +184,13 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     public ValType visitNodeAssignStatement(NodeAssignStatement node) {
         ValType type = vm.getCurrentEnv().getVariable(node.identifier).getType();
 
-        expectedTypes.offerLast(type);
+        evaluateContext(type);
         // Check if the value we are assigning can be assigned to the current type
         if(!isAssignable(type, node.expression.accept(this))) {
             logger.severe(String.format("Found illegal assignment: %s != %s", type, node.expression.accept(this)));
             throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.expression.accept(this));
         }
-        expectedTypes.pollLast();
+        contextStack.pollLast();
 
         logger.info(String.format("Type: %s is compatible with initializer: %s", type, node.expression.accept(this)));
         return node.expression.accept(this);
@@ -199,11 +199,11 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodeIfStatement(NodeIfStatement node) {
         logger.info("Checking an if-statement...");
-        expectedTypes.offerLast(ValType.BOOLEAN);
+        evaluateContext(ValType.BOOLEAN);
         logger.info("Checking the condition...");
         node.booleanExpression.accept(this);
         logger.info("Condition is compatible");
-        expectedTypes.pollLast();
+        contextStack.pollLast();
 
         logger.info("Evaluating the then-block");
         node.thenBlock.accept(this);
@@ -220,11 +220,11 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodeWhileStatement(NodeWhileStatement node) {
         logger.info("Checking a while-statement...");
-        expectedTypes.offerLast(ValType.BOOLEAN);
+        evaluateContext(ValType.BOOLEAN);
         logger.info("Checking the condition...");
         node.booleanExpression.accept(this);
         logger.info("Condition is compatible");
-        expectedTypes.pollLast();
+        contextStack.pollLast();
 
         logger.info("Evaluating the then-block");
         node.thenBlock.accept(this);
@@ -266,9 +266,19 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     private boolean isComparable(ValType left, ValType right) {
         if(left == right) return true;
-        if((left == ValType.NUMBER && right == ValType.DOUBLE) || left == ValType.DOUBLE && right == ValType.NUMBER) return false;
+        if((left == ValType.NUMBER && right == ValType.DOUBLE) || left == ValType.DOUBLE && right == ValType.NUMBER) return true;
         if((left == ValType.STRING && right == ValType.CHARACTER) || left == ValType.CHARACTER && right == ValType.STRING) return true;
         return false;
+    }
+
+    private void evaluateContext(ValType type) {
+        ValType currentContext = getCurrentContext();
+        // ?
+        if(currentContext == null) contextStack.offerLast(type);
+    }
+
+    private ValType getCurrentContext() {
+        return contextStack.peekLast();
     }
 
     @Override

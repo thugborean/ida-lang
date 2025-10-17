@@ -1,7 +1,1 @@
-num a = 123;
-{
-    num a = 123123;
-    print(a);
-}
-
-print(a);
+print("Hello World!");
