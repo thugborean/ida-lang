@@ -5,15 +5,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.logging.Logger;
 
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
+import io.github.thugborean.logging.LoggingManager;
 import io.github.thugborean.vm.symbol.*;
 import io.github.thugborean.syntax.*;
 
 public class Parser {
+    private final static Logger logger = LoggingManager.getLogger(Parser.class);
     public List<Token> tokens;
     private int index = 0;
     private int curlyDepth = 0;
@@ -83,6 +86,7 @@ public class Parser {
     );
 
     public Program parseProgram() {
+        logger.info("Parsing program...");
         this.index = 0;
         List<NodeStatement> statements = new ArrayList<>();
         while (!isAtEnd()) {
@@ -104,6 +108,7 @@ public class Parser {
 
     // This method will from now on be used to parse ALL expressions, typechecker will enforce correctness
     private NodeExpression parseExpression(boolean insideParentheses) {
+        logger.info("Parsing expression...");
         List<Token> expressionTokens = new ArrayList<>();
         NodeExpression result;
         int depth = insideParentheses ? 1 : 0;
@@ -147,6 +152,7 @@ public class Parser {
         // Create AST from RPN
         result = createNodeExpressionAST(solvingStack);
         
+        logger.info("Finished parsing expression");
         return result;
     }
 
@@ -157,8 +163,10 @@ public class Parser {
         for (Token token : tokens) {
             // If we get this far it means the user is trying to do artithemtics with a
             // NullLiteral
-            if (token.tokenType == TokenType.NullLiteral)
+            if (token.tokenType == TokenType.NullLiteral) {
+                logger.severe("Found null in arithmetic expression!");
                 throw new RuntimeException("Parser Error: NULL must stand on its own in an expression!");
+            }
             // parentheses LOGIC --------------------------------------------------------
             // If open parentheses, push it onto the stack
             if (token.tokenType == TokenType.ParenthesesOpen)
@@ -168,8 +176,10 @@ public class Parser {
                 while (holdingStack.peek().tokenType != TokenType.ParenthesesOpen) {
                     output.add(holdingStack.pop());
                     // If we drain and find no open parentheses, we throw an error
-                    if (holdingStack.peek() == null)
-                        throw new RuntimeException("Parser Error: No '(' found to match ')'");
+                    if (holdingStack.peek() == null) {
+                        logger.info("Mismatched paranthesis in expression!");
+                        throw new RuntimeException("Mismatched paranthesis in expression!");
+                    }
                 }
                 // It should always get to this point if it works and if it doesn't it SHOULD
                 // throw an error before we get to this point
@@ -191,8 +201,10 @@ public class Parser {
         // Add the rest of the operators to the output
         while (!holdingStack.holdingCell.isEmpty()) {
             Token op = holdingStack.pop();
-            if (op.tokenType == TokenType.ParenthesesOpen || op.tokenType == TokenType.ParenthesesClosed)
-                throw new RuntimeException("Parser Error: Mismatched parentheses");
+            if (op.tokenType == TokenType.ParenthesesOpen || op.tokenType == TokenType.ParenthesesClosed) {
+                logger.severe("Mismatched paranthesis in expression!");
+                throw new RuntimeException("Mismatched paranthesis in expression!");
+            }
             output.add(op);
         }
         return output;
@@ -225,8 +237,8 @@ public class Parser {
             }
         }
         if (stack.size() != 1) {
-            throw new RuntimeException("Parser Error: Expression did not reduce to a single node. Stack contains: "
-                    + stack.size() + " elements!");
+            logger.severe("Expression did not reduce to a single node. Stack contains: " + stack.size() + " elements!");
+            throw new RuntimeException("Expression did not reduce to a single node. Stack contains: " + stack.size() + " elements!");
         }
         return stack.pop();
     }
@@ -270,6 +282,7 @@ public class Parser {
 
     // Will need clean-up!
     private NodeVariableDeclaration parseVariableDeclaration() {
+        logger.info("Parsing variable declaration");
         Token typeToken = advance();
         ValType declaredType = variableTypes.get(typeToken.tokenType);
 
@@ -288,6 +301,7 @@ public class Parser {
     }
 
     private NodePrintStatement parsePrintStatement() {
+        logger.info("Parsing print-statement...");
         consume(TokenType.Print, "Missing print-statement!");
 
         consume(TokenType.ParenthesesOpen, "Missing '(' on print statement!");
@@ -295,22 +309,29 @@ public class Parser {
         NodeExpression printable = parseExpression(true);
 
         endStatement();
+        logger.info("Finished parsing print-statement");
         return new NodePrintStatement(printable);
     }
 
     private NodeIfStatement parseIfStatement() {
+        logger.info("Parsing if-statement...");
         consume(TokenType.If, "Missing 'if' token in if-statement!");
         consume(TokenType.ParenthesesOpen, "Missing '(' before expression!");
         NodeExpression condition = parseExpression(true);
         NodeBlock thenBlock;
         if(match(TokenType.CurlyOpen)) thenBlock = parseBlock();
-            else throw new RuntimeException("Missing '{' in if-statement!");
-
+            else {
+                logger.severe("Missing '{' in if-statement!");
+                throw new RuntimeException("Missing '{' in if-statement!");
+            }
         if(match(TokenType.Else)) {
             consume(TokenType.Else, "Missing else block in if-statement!");
             NodeStatement elseBlock = parseStatement();
+
+            logger.info("Finished parsing if-statement");
             return new NodeIfStatement(condition, thenBlock, elseBlock);
         } else {
+            logger.info("Finished parsing if-statement");
             return new NodeIfStatement(condition, thenBlock);
         }
     }
@@ -326,6 +347,7 @@ public class Parser {
     }
 
     private NodeWhileStatement parseWhileStatement() {
+        logger.info("Parsing while-statement...");
         consume(TokenType.While, "Missing 'while' in while-statement");
         consume(TokenType.ParenthesesOpen, "Missing '(' in while-statement");
 
@@ -335,10 +357,12 @@ public class Parser {
         if(match(TokenType.CurlyOpen)) thenBlock = parseBlock();
             else throw new RuntimeException("Missing '{' in while-statement!");
 
+        logger.info("Finished parsig while-statement");
         return new NodeWhileStatement(condition, thenBlock);
     }
 
     private NodeAssignStatement parseAssignStatement() {
+        logger.info("Parsing assign-statement");
         String identifier = consume(TokenType.Identifier, "Missing identifier!").lexeme;
         consume(TokenType.Assign, "Missing '=' in assign-statement!");
 
@@ -349,14 +373,17 @@ public class Parser {
     }
 
     private NodeAssignStatement parseAssignStatement(String identifier) {
+        logger.info("Parsing assign-statement");
         consume(TokenType.Assign, "Missing '=' in assign-statement!");
         NodeExpression expression = parseExpression(false);
         return new NodeAssignStatement(identifier, expression);
     }
 
     private void endStatement() {
-        if(!match(TokenType.SemiColon))
-            throw new RuntimeException("Parser Error: ';' needed to end statement");
+        if(!match(TokenType.SemiColon)) {
+            logger.severe("';' needed to end statement");
+            throw new RuntimeException("';' needed to end statement");
+        }
         advance();
     }
 
@@ -383,7 +410,10 @@ public class Parser {
     private Token consume(TokenType tokenType, String errorMsg) {
         if(check(tokenType)) {
             return advance();
-        } else throw new RuntimeException(errorMsg);
+        } else {
+            logger.severe(errorMsg);
+            throw new RuntimeException(errorMsg);
+        }
     }
 
     private Token peek(int amount) {
@@ -412,7 +442,6 @@ public class Parser {
     }
 }
 
-// Custom datatype, a stack that you can iterate through
 class HoldingStack {
     public int stackPointer = -1;
     public List<Token> holdingCell = new ArrayList<>(); // Ampere - Holding Pattern

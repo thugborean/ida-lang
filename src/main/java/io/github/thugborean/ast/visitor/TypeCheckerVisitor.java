@@ -293,10 +293,10 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     @Override
     public ValType visitNodePrintStatement(NodePrintStatement node) {
-        logger.info("Checking Print Statement...");
+        logger.info("Checking print-statement...");
         // Checks if the value can be printed
         node.printable.accept(this);
-        logger.info("Print Statement has passed");
+        logger.info("Print-statement has passed");
         return null;
     }
 
