@@ -7,6 +7,8 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.logging.Logger;
 
+import javax.management.RuntimeErrorException;
+
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
@@ -146,6 +148,7 @@ public class Parser {
         // Check if the expression is empty
         if (expressionTokens.isEmpty())
             throw new RuntimeException("Parser Error: Empty expression");
+
         // We will use shuntingyard to turn the expression into RPN
         // RPN
         List<Token> solvingStack = shuntingYard(expressionTokens);
@@ -154,6 +157,69 @@ public class Parser {
         
         logger.info("Finished parsing expression");
         return result;
+    }
+    /*
+                case Or:
+            case LessThan:
+            case LessThanOrEquals:
+            case GreaterThan:
+            case GreaterThanOrEquals:
+            case EqualsEquals:
+                return 1;
+            case And:
+                return 2;
+            case Plus:
+            case Minus:
+                return 3;
+            case Multiply:
+            case Divide:
+            case Modulo:
+                return 4;
+            case AtseriskAsterisk:
+                return 5;
+            case Assign:
+                return -1;
+            default:
+                return 0;
+    */
+    private int getBindingPower(Token operator) {
+        return switch (operator.tokenType) {
+            case Assign -> {
+                yield 0;
+            }
+            case LessThan, GreaterThan, LessThanOrEquals, GreaterThanOrEquals, EqualsEquals -> {
+                yield 1;
+            }
+            case And -> {
+                yield 2;
+            }
+            case Plus, Minus -> {
+                yield 3;
+            }
+            case Multiply, Divide, Modulo -> {
+                yield 3;
+            }
+            case AtseriskAsterisk -> {
+                yield 4;
+            }
+            default -> {
+                logger.severe("Unrecognized operator in expression: " + operator.lexeme);
+                throw new RuntimeException("Unrecognized operator in expression: " + operator.lexeme);
+            }
+        };
+    }
+
+    // Needs peek and next
+    private NodeExpression pratt(List<Token> tokens) {
+        Stack<NodeExpression> expressionStack = new Stack<>();
+        for(Token token : tokens) {
+
+        }
+        if (expressionStack.empty()) {
+            logger.severe("Expression stack was empty!");
+            throw new RuntimeException("Expression stack was empty!");
+        }
+        return expressionStack.pop();
     }
 
     private List<Token> shuntingYard(List<Token> tokens) {
