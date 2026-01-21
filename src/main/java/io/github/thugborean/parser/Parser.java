@@ -70,6 +70,15 @@ public class Parser {
 
         TokenType.NullLiteral);
 
+        private static final Set<TokenType> atoms = Set.of(
+            TokenType.NullLiteral,
+            TokenType.NumericLiteral,
+            TokenType.DoubleLiteral,
+            TokenType.StringLiteral,
+            TokenType.DoubleLiteral,
+            TokenType.Identifier
+        );
+
     private static final Set<TokenType> operators = Set.of(
         TokenType.Plus,
         TokenType.Minus,
@@ -96,6 +105,7 @@ public class Parser {
         }
         if(curlyDepth != 0) throw new RuntimeException("Parser Error: Mismatched curly-braces!");
         curlyDepth = 0;
+        logger.info("Finished parsing program!");
         return new Program(statements);
     }
 
@@ -108,7 +118,8 @@ public class Parser {
         return parseExpressionStatement();
     }
 
-    // This method will from now on be used to parse ALL expressions, typechecker will enforce correctness
+    // The purpose of this method is basically to churn out a list of expressionTokens until it hits a ';'
+    // Handling parantheses and letting pratt-parsing create the final AST
     private NodeExpression parseExpression(boolean insideParentheses) {
         logger.info("Parsing expression...");
         List<Token> expressionTokens = new ArrayList<>();
@@ -145,9 +156,24 @@ public class Parser {
         }
         if (depth != 0)
             throw new RuntimeException("Parser Error: '(' not closed properly");
+
         // Check if the expression is empty
-        if (expressionTokens.isEmpty())
-            throw new RuntimeException("Parser Error: Empty expression");
+        if (expressionTokens.isEmpty()) {
+            logger.severe("Empty expression");
+            throw new RuntimeException("Empty expression");
+        }
+        // If the expression is just one token we need some special behaviours
+        if(expressionTokens.size() == 1) {
+            Token token = expressionTokens.get(0);
+            TokenType tokenType = token.tokenType;
+            if(operators.contains(tokenType)) {
+                logger.severe("Lonely operator " + token.lexeme + " in expression!");
+                throw new RuntimeException("Lonely operator " + token.lexeme + " in expression!");
+            } else if (atoms.contains(tokenType)) {
+                // TODO: fix it
+            }
+        }
+        // return pratt(expressionTokens)
 
         // We will use shuntingyard to turn the expression into RPN
         // RPN
@@ -158,49 +184,26 @@ public class Parser {
         logger.info("Finished parsing expression");
         return result;
     }
-    /*
-                case Or:
-            case LessThan:
-            case LessThanOrEquals:
-            case GreaterThan:
-            case GreaterThanOrEquals:
-            case EqualsEquals:
-                return 1;
-            case And:
-                return 2;
-            case Plus:
-            case Minus:
-                return 3;
-            case Multiply:
-            case Divide:
-            case Modulo:
-                return 4;
-            case AtseriskAsterisk:
-                return 5;
-            case Assign:
-                return -1;
-            default:
-                return 0;
-    */
-    private int getBindingPower(Token operator) {
+
+    private BindingPair getBindingPower(Token operator) {
         return switch (operator.tokenType) {
             case Assign -> {
-                yield 0;
+                yield new BindingPair(-0.1f, -0.0f);
             }
             case LessThan, GreaterThan, LessThanOrEquals, GreaterThanOrEquals, EqualsEquals -> {
-                yield 1;
+                yield new BindingPair(1.1f, 1.0f);
             }
             case And -> {
-                yield 2;
+                yield new BindingPair(2.1f, 2.0f);
             }
             case Plus, Minus -> {
-                yield 3;
+                yield new BindingPair(3.1f, 3.0f);
             }
             case Multiply, Divide, Modulo -> {
-                yield 3;
+                yield new BindingPair(4.1f, 4.0f);
             }
             case AtseriskAsterisk -> {
-                yield 4;
+                yield new BindingPair(5.1f, 0.0f);
             }
             default -> {
                 logger.severe("Unrecognized operator in expression: " + operator.lexeme);
@@ -209,17 +212,10 @@ public class Parser {
         };
     }
 
-    // Needs peek and next
+    // Needs peek and next, this method asumes the expression has more than one token
     private NodeExpression pratt(List<Token> tokens) {
-        Stack<NodeExpression> expressionStack = new Stack<>();
-        for(Token token : tokens) {
 
-        }
-        if (expressionStack.empty()) {
-            logger.severe("Expression stack was empty!");
-            throw new RuntimeException("Expression stack was empty!");
-        }
-        return expressionStack.pop();
+        return null;
     }
 
     private List<Token> shuntingYard(List<Token> tokens) {
@@ -506,6 +502,8 @@ public class Parser {
     private boolean isExpressionToken(TokenType tokenType) {
         return expressionTokens.contains(tokenType) ? true : false;
     }
+
+    record BindingPair(float left, float right) {}
 }
 
 class HoldingStack {
