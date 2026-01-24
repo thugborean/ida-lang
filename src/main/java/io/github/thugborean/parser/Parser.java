@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.logging.Logger;
-
-import javax.management.RuntimeErrorException;
 
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
@@ -68,32 +65,38 @@ public class Parser {
         TokenType.ParenthesesOpen,
         TokenType.ParenthesesClosed,
 
-        TokenType.NullLiteral);
+        TokenType.NullLiteral,
 
-        private static final Set<TokenType> atoms = Set.of(
-            TokenType.NullLiteral,
-            TokenType.NumericLiteral,
-            TokenType.DoubleLiteral,
-            TokenType.StringLiteral,
-            TokenType.DoubleLiteral,
-            TokenType.Identifier
-        );
+        TokenType.Assign
+    );
+
+    private static final Set<TokenType> atoms = Set.of(
+        TokenType.NullLiteral,
+        TokenType.NumericLiteral,
+        TokenType.DoubleLiteral,
+        TokenType.StringLiteral,
+        TokenType.Identifier
+    );
 
     private static final Set<TokenType> operators = Set.of(
-        TokenType.Plus,
-        TokenType.Minus,
-        TokenType.Multiply,
-        TokenType.Divide,
-        TokenType.Modulo,
+        TokenType.Plus, // +
+        TokenType.Minus,// -
+        TokenType.Multiply, // *
+        TokenType.Divide, // /
+        TokenType.Modulo, // %
 
         TokenType.AtseriskAsterisk, // ²
+        TokenType.PlusPlus, // ++
+        TokenType.MinusMinus, // --
 
-        TokenType.LessThan,
-        TokenType.LessThanOrEquals,
-        TokenType.GreaterThan,
-        TokenType.GreaterThanOrEquals,
-        TokenType.EqualsEquals,
-        TokenType.BangEquals
+        TokenType.LessThan, // <
+        TokenType.LessThanOrEquals, // <=
+        TokenType.GreaterThan, // >
+        TokenType.GreaterThanOrEquals, // >=
+        TokenType.EqualsEquals, // ==
+        TokenType.BangEquals, // !=
+
+        TokenType.Bang // !
     );
 
     public Program parseProgram() {
@@ -118,77 +121,10 @@ public class Parser {
         return parseExpressionStatement();
     }
 
-    // The purpose of this method is basically to churn out a list of expressionTokens until it hits a ';'
-    // Handling parantheses and letting pratt-parsing create the final AST
-    private NodeExpression parseExpression(boolean insideParentheses) {
-        logger.info("Parsing expression...");
-        List<Token> expressionTokens = new ArrayList<>();
-        NodeExpression result;
-        int depth = insideParentheses ? 1 : 0;
-        while (true) {
-            if (peek().tokenType == TokenType.SemiColon || peek().tokenType == TokenType.CurlyOpen) break;
-            // PARENTHESIS LOGIC
-            if (peek().tokenType == TokenType.ParenthesesOpen) {
-                depth++;
-                expressionTokens.add(peek());
-                advance();
-                continue;
-            } else if (peek().tokenType == TokenType.ParenthesesClosed) {
-                // This means that it's the clsoing parentheses
-                if (insideParentheses && depth == 1) {
-                    depth--;
-                    advance();
-                } else {
-                    depth--;
-                    expressionTokens.add(peek());
-                    advance();
-                    continue;
-                }
-            } else
-            // EVERYTHING ELSE
-            // If the token is an expressionToken add it
-            if (isExpressionToken(peek().tokenType)) {
-                expressionTokens.add(peek());
-                advance();
-                continue;
-            } else
-                throw new RuntimeException("Parser Error: Unexpected Symbol '" + peek().tokenType + "' in expression");
-        }
-        if (depth != 0)
-            throw new RuntimeException("Parser Error: '(' not closed properly");
-
-        // Check if the expression is empty
-        if (expressionTokens.isEmpty()) {
-            logger.severe("Empty expression");
-            throw new RuntimeException("Empty expression");
-        }
-        // If the expression is just one token we need some special behaviours
-        if(expressionTokens.size() == 1) {
-            Token token = expressionTokens.get(0);
-            TokenType tokenType = token.tokenType;
-            if(operators.contains(tokenType)) {
-                logger.severe("Lonely operator " + token.lexeme + " in expression!");
-                throw new RuntimeException("Lonely operator " + token.lexeme + " in expression!");
-            } else if (atoms.contains(tokenType)) {
-                // TODO: fix it
-            }
-        }
-        // return pratt(expressionTokens)
-
-        // We will use shuntingyard to turn the expression into RPN
-        // RPN
-        List<Token> solvingStack = shuntingYard(expressionTokens);
-        // Create AST from RPN
-        result = createNodeExpressionAST(solvingStack);
-        
-        logger.info("Finished parsing expression");
-        return result;
-    }
-
-    private BindingPair getBindingPower(Token operator) {
+    private BindingPair getInfixBindingPower(Token operator) {
         return switch (operator.tokenType) {
             case Assign -> {
-                yield new BindingPair(-0.1f, -0.0f);
+                yield new BindingPair(0.1f, 0.0f);
             }
             case LessThan, GreaterThan, LessThanOrEquals, GreaterThanOrEquals, EqualsEquals -> {
                 yield new BindingPair(1.1f, 1.0f);
@@ -203,143 +139,98 @@ public class Parser {
                 yield new BindingPair(4.1f, 4.0f);
             }
             case AtseriskAsterisk -> {
-                yield new BindingPair(5.1f, 0.0f);
+                yield new BindingPair(5.1f, 5.0f);
             }
             default -> {
-                logger.severe("Unrecognized operator in expression: " + operator.lexeme);
-                throw new RuntimeException("Unrecognized operator in expression: " + operator.lexeme);
+                yield new BindingPair(0.0f, 0.0f);
             }
         };
     }
 
-    // Needs peek and next, this method asumes the expression has more than one token
-    private NodeExpression pratt(List<Token> tokens) {
-
-        return null;
+    private BindingPair getPrefixBindingPower(Token operator) {
+        if(operator.tokenType == TokenType.Minus) return new BindingPair(7.1f, 7.0f);
+        
+        return new BindingPair(0f, 0f);
     }
 
-    private List<Token> shuntingYard(List<Token> tokens) {
-        List<Token> output = new ArrayList<>();
-        HoldingStack holdingStack = new HoldingStack();
+    private NodeExpression pratt(float minumumBindingPower) {
+        if (!expressionTokens.contains(peek().tokenType))
+            return null;
 
-        for (Token token : tokens) {
-            // If we get this far it means the user is trying to do artithemtics with a
-            // NullLiteral
-            if (token.tokenType == TokenType.NullLiteral) {
-                logger.severe("Found null in arithmetic expression!");
-                throw new RuntimeException("Parser Error: NULL must stand on its own in an expression!");
-            }
-            // parentheses LOGIC --------------------------------------------------------
-            // If open parentheses, push it onto the stack
-            if (token.tokenType == TokenType.ParenthesesOpen)
-                holdingStack.push(token);
-            else if (token.tokenType == TokenType.ParenthesesClosed) {
-                // Logic for parentheses
-                while (holdingStack.peek().tokenType != TokenType.ParenthesesOpen) {
-                    output.add(holdingStack.pop());
-                    // If we drain and find no open parentheses, we throw an error
-                    if (holdingStack.peek() == null) {
-                        logger.info("Mismatched paranthesis in expression!");
-                        throw new RuntimeException("Mismatched paranthesis in expression!");
-                    }
-                }
-                // It should always get to this point if it works and if it doesn't it SHOULD
-                // throw an error before we get to this point
-                holdingStack.pop(); // Remove the open parentheses
-            // OPERATOR LOGIC -----------------------------------------------------------
-            // Check if it is an operator
-            } else if (operators.contains(token.tokenType)) {
-                // While the stack is not empty and the current top operator has a lesser
-                // precedence than the token operator
-                // Pop the top operator of the stack and add it to output
-                while (!holdingStack.holdingCell.isEmpty() &&
-                        getPrecedence(token) <= getPrecedence(holdingStack.peek())) {
-                    output.add(holdingStack.pop());
-                }
-                holdingStack.push(token);
-            // LITERAL AND IDENTIFIER LOGIC ----------------------------------------------
-            } else output.add(token);
+        Token token = advance();
+
+        isExpressionToken(token); // Useless?
+        NodeExpression left = parsePrefix(token);
+
+        while (true) {
+            Token next = peek();
+            float leftBindingPower = getInfixBindingPower(next).left;
+
+            if (leftBindingPower <= minumumBindingPower) break;
+
+            Token operator = advance();
+            left = parseInfix(left, operator);
         }
-        // Add the rest of the operators to the output
-        while (!holdingStack.holdingCell.isEmpty()) {
-            Token op = holdingStack.pop();
-            if (op.tokenType == TokenType.ParenthesesOpen || op.tokenType == TokenType.ParenthesesClosed) {
-                logger.severe("Mismatched paranthesis in expression!");
-                throw new RuntimeException("Mismatched paranthesis in expression!");
-            }
-            output.add(op);
-        }
-        return output;
+        
+        return left;
     }
 
-    private NodeExpression createNodeExpressionAST(List<Token> rpnTokens) {
-        Stack<NodeExpression> stack = new Stack<>();
-        for (Token token : rpnTokens) {
-            if (token.tokenType == TokenType.Identifier) {
-                stack.push(new NodeVariableReference(token.lexeme));
-            } else if (token.tokenType == TokenType.NumericLiteral) {
-                stack.push(new NodeNumericLiteral(token));
-            } else if (token.tokenType == TokenType.DoubleLiteral) {
-                stack.push(new NodeDoubleLiteral(token));
-            } else if (token.tokenType == TokenType.StringLiteral) {
-                stack.push(new NodeStringLiteral(token));
-            } else if (token.tokenType == TokenType.CharacterLiteral) {
-                throw new RuntimeException("Char is unimplemented!");
-            } else if (token.tokenType == TokenType.True || token.tokenType == TokenType.False) {
-                stack.push(new NodeBooleanLiteral(token));
-            } else if (operators.contains(token.tokenType)) {
-                if (stack.size() < 2) {
-                    throw new RuntimeException("Parser Error: Not enough operands for operator: " + token.lexeme);
-                }
-                NodeExpression right = stack.pop();
-                NodeExpression left = stack.pop();
-                stack.push(new NodeBinaryExpression(left, right, token));
-            } else {
-                throw new RuntimeException("Parser Error: Unrecognized token in RPN expression: " + token.lexeme);
+    private NodeExpression parsePrefix(Token token) {
+        switch(token.tokenType) {
+            case NumericLiteral: {
+                return new NodeNumericLiteral(token);
+            }
+            case DoubleLiteral: {
+                return new NodeDoubleLiteral(token);
+            }
+            case StringLiteral: {
+                return new NodeStringLiteral(token);
+            }
+            case BooleanLiteral: {
+                return new NodeBooleanLiteral(token);
+            }
+            case NullLiteral: {
+                return new NodeNullLiteral(token);
+            }
+            case Identifier: {
+                return new NodeVariableReference(token.lexeme);
+            }
+            case Minus: {
+                return new NodeUnaryExpression(token, pratt(getPrefixBindingPower(token).left));
+            }
+            case ParenthesesOpen: {
+                NodeExpression expr = pratt(0);
+                consume(TokenType.ParenthesesClosed, "Missing ')'");
+                return expr;
+            }
+            default: {
+                logger.severe("Unrecognized token: " + token.lexeme + " in expression!");
+                throw new RuntimeException("Unrecognized token: " + token.lexeme + " in expression!");
             }
         }
-        if (stack.size() != 1) {
-            logger.severe("Expression did not reduce to a single node. Stack contains: " + stack.size() + " elements!");
-            throw new RuntimeException("Expression did not reduce to a single node. Stack contains: " + stack.size() + " elements!");
-        }
-        return stack.pop();
     }
 
-    private int getPrecedence(Token token) {
-        switch (token.tokenType) {
-            case Or:
-            case LessThan:
-            case LessThanOrEquals:
-            case GreaterThan:
-            case GreaterThanOrEquals:
-            case EqualsEquals:
-                return 1;
-            case And:
-                return 2;
-            case Plus:
-            case Minus:
-                return 3;
-            case Multiply:
-            case Divide:
-            case Modulo:
-                return 4;
-            case AtseriskAsterisk:
-                return 5;
-            case Assign:
-                return -1;
-            default:
-                return 0;
+    private NodeExpression parseInfix(NodeExpression left, Token operator) {
+        NodeBinaryExpression expression = new NodeBinaryExpression();
+        expression.leftHandSide = left;
+        expression.operator = operator;
+        float bindingPower = getInfixBindingPower(operator).right;
+        expression.rightHandSide = pratt(bindingPower);
+
+        return expression;
+    }
+
+    private void isExpressionToken(Token token) {
+        if(!expressionTokens.contains(token.tokenType)) {
+            logger.severe("Token: " + token.lexeme + " is disallowed in expression!");
+            throw new RuntimeException("Token: " + token.lexeme + " is disallowed in expression!");
         }
     }
 
     private NodeExpressionStatement parseExpressionStatement() {
-        // This is ugly but will have to do for now
-        if(peek(1).tokenType == TokenType.Assign) return parseAssignStatement();
-        else {
-            NodeExpression expressionStatement = parseExpression(false);
+            NodeExpression expressionStatement = pratt(0);
             endStatement();
             return new NodeExpressionStatement(expressionStatement);
-        }
     }
 
     // Will need clean-up!
@@ -348,15 +239,13 @@ public class Parser {
         Token typeToken = advance();
         ValType declaredType = variableTypes.get(typeToken.tokenType);
 
-        // Explicitly require IDENTIFIER next
-        Token identifierToken = consume(TokenType.Identifier, "Expected variable name after type");
+        Token identifierToken = consume(TokenType.Identifier, "Identifier missing after type in variable declaration!");
         String identifier = identifierToken.lexeme;
 
-        // Optional initializer
-        NodeAssignStatement assignment = null;
-        if (match(TokenType.Assign)) {
-            assignment = parseAssignStatement(identifier);
-        }
+        consume(TokenType.Assign, "Assign operator missing after variable declaration!");
+        NodeExpression assignment = null;
+
+        assignment = pratt(0);
 
         endStatement();
         return new NodeVariableDeclaration(declaredType, identifier, assignment);
@@ -367,8 +256,8 @@ public class Parser {
         consume(TokenType.Print, "Missing print-statement!");
 
         consume(TokenType.ParenthesesOpen, "Missing '(' on print statement!");
-
-        NodeExpression printable = parseExpression(true);
+        NodeExpression printable = pratt(0);
+        consume(TokenType.ParenthesesClosed, "Missing ')' before expression!");
 
         endStatement();
         logger.info("Finished parsing print-statement");
@@ -379,7 +268,8 @@ public class Parser {
         logger.info("Parsing if-statement...");
         consume(TokenType.If, "Missing 'if' token in if-statement!");
         consume(TokenType.ParenthesesOpen, "Missing '(' before expression!");
-        NodeExpression condition = parseExpression(true);
+        NodeExpression condition = pratt(0);
+        consume(TokenType.ParenthesesClosed, "Missing ')' before expression!");
         NodeBlock thenBlock;
         if(match(TokenType.CurlyOpen)) thenBlock = parseBlock();
             else {
@@ -412,8 +302,8 @@ public class Parser {
         logger.info("Parsing while-statement...");
         consume(TokenType.While, "Missing 'while' in while-statement");
         consume(TokenType.ParenthesesOpen, "Missing '(' in while-statement");
-
-        NodeExpression condition = parseExpression(true);
+        NodeExpression condition = pratt(0);
+        consume(TokenType.ParenthesesClosed, "Missing ')' before expression!");
         NodeBlock thenBlock;
 
         if(match(TokenType.CurlyOpen)) thenBlock = parseBlock();
@@ -421,24 +311,6 @@ public class Parser {
 
         logger.info("Finished parsig while-statement");
         return new NodeWhileStatement(condition, thenBlock);
-    }
-
-    private NodeAssignStatement parseAssignStatement() {
-        logger.info("Parsing assign-statement");
-        String identifier = consume(TokenType.Identifier, "Missing identifier!").lexeme;
-        consume(TokenType.Assign, "Missing '=' in assign-statement!");
-
-        NodeExpression expression = parseExpression(false);
-
-        endStatement();
-        return new NodeAssignStatement(identifier, expression);
-    }
-
-    private NodeAssignStatement parseAssignStatement(String identifier) {
-        logger.info("Parsing assign-statement");
-        consume(TokenType.Assign, "Missing '=' in assign-statement!");
-        NodeExpression expression = parseExpression(false);
-        return new NodeAssignStatement(identifier, expression);
     }
 
     private void endStatement() {
@@ -504,34 +376,4 @@ public class Parser {
     }
 
     record BindingPair(float left, float right) {}
-}
-
-class HoldingStack {
-    public int stackPointer = -1;
-    public List<Token> holdingCell = new ArrayList<>(); // Ampere - Holding Pattern
-
-    public void push(Token token) {
-        holdingCell.add(token);
-        stackPointer++;
-    }
-
-    public Token pop() {
-        if (!holdingCell.isEmpty()) {
-            // Get the token
-            Token token = holdingCell.get(stackPointer);
-            // Remove the token
-            holdingCell.remove(stackPointer);
-            stackPointer--;
-            // Return the token
-            return token;
-        } else
-            return null;
-    }
-
-    public Token peek() {
-        if (!holdingCell.isEmpty()) {
-            return holdingCell.get(stackPointer);
-        } else
-            return null;
-    }
 }
