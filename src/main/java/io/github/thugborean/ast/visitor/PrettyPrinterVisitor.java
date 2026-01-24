@@ -153,4 +153,23 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     public Void visitNodeExitScope(NodeExitScope node) {
         throw new UnsupportedOperationException("Unimplemented method 'visitNodeExitScope'");
     }
+
+    @Override
+    public Void visitNodeFunctionDeclaration(NodeFunctionDeclaration node) {
+        line("Function declaration: ");
+        indentLevel++;
+        line("Identifier: " + node.identifier);
+        line("Return type: " + node.returnType);
+        line("Parameters: " + node.parameters);
+        line("Modifiers: " + node.modifiers);
+        line("Contents: " + node.contents);
+        indentLevel--;
+        return null;
+    }
+
+    @Override
+    public Void visitNodeReturnStatement(NodeReturnStatement node) {
+        line("Return statement -> " + node.returnType);
+        return null;
+    }
 }

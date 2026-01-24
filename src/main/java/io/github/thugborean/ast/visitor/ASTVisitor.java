@@ -28,10 +28,12 @@ public interface ASTVisitor<T> {
     T visitNodeVariableDeclaration(NodeVariableDeclaration node);
     T visitNodeExpressionStatement(NodeExpressionStatement node);
     T visitNodePrintStatement(NodePrintStatement node);
+    T visitNodeFunctionDeclaration(NodeFunctionDeclaration node);
+    T visitNodeReturnStatement(NodeReturnStatement node);
     // Visit NodeScope
     T visitNodeEnterScope(NodeEnterScope node);
     T visitNodeExitScope(NodeExitScope node);
-    //Visit misc
+    //Visit misc aka can't be bothered to implement these methods
     default T visitNodeType(NodeType node){return null;}
     default T visitNodeBlock(NodeBlock nodeBlock){return null;}
     default T visitNodeIfStatement(NodeIfStatement nodeIfStatement){return null;}

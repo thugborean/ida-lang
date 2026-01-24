@@ -1,6 +1,7 @@
 package io.github.thugborean.parser;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +25,6 @@ public class Parser {
         this.tokens = tokens;
     }
 
-    // VariableTypes
     private static final Map<TokenType, ValType> variableTypes = Map.ofEntries(
             Map.entry(TokenType.Number, ValType.NUMBER),
             Map.entry(TokenType.Double, ValType.DOUBLE),
@@ -32,7 +32,12 @@ public class Parser {
             Map.entry(TokenType.Boolean, ValType.BOOLEAN)
     );
 
-    // ExpressionTokens
+    private static final Set<TokenType> modifiers = Set.of(
+        TokenType.Final,
+        TokenType.Public,
+        TokenType.Private
+    );
+
     private static final Set<TokenType> expressionTokens = Set.of(
         TokenType.Identifier,
         TokenType.NumericLiteral,
@@ -69,7 +74,7 @@ public class Parser {
 
         TokenType.Assign
     );
-
+/* 
     private static final Set<TokenType> atoms = Set.of(
         TokenType.NullLiteral,
         TokenType.NumericLiteral,
@@ -98,7 +103,7 @@ public class Parser {
 
         TokenType.Bang // !
     );
-
+*/
     public Program parseProgram() {
         logger.info("Parsing program...");
         this.index = 0;
@@ -118,6 +123,7 @@ public class Parser {
         if(match(TokenType.Number, TokenType.Double, TokenType.String, TokenType.Boolean)) return parseVariableDeclaration();
         if(match(TokenType.Print)) return parsePrintStatement();
         if(match(TokenType.CurlyOpen)) return parseBlock();
+        if(match(TokenType.Function, TokenType.Public, TokenType.Private)) return parseFunctionDeclaration();
         return parseExpressionStatement();
     }
 
@@ -233,7 +239,6 @@ public class Parser {
             return new NodeExpressionStatement(expressionStatement);
     }
 
-    // Will need clean-up!
     private NodeVariableDeclaration parseVariableDeclaration() {
         logger.info("Parsing variable declaration");
         Token typeToken = advance();
@@ -307,10 +312,101 @@ public class Parser {
         NodeBlock thenBlock;
 
         if(match(TokenType.CurlyOpen)) thenBlock = parseBlock();
-            else throw new RuntimeException("Missing '{' in while-statement!");
-
+            else {
+                logger.severe("Missing '{' in while-statement!");
+                throw new RuntimeException("Missing '{' in while-statement!");
+            }
         logger.info("Finished parsig while-statement");
         return new NodeWhileStatement(condition, thenBlock);
+    }
+
+    // If this is called we have either encountered fn, pb, pr
+    private NodeFunctionDeclaration parseFunctionDeclaration() {
+        logger.info("Parsing function declaration...");
+        // Look for modifiers
+        Set<Modifier> functionModifiers = new HashSet<>();
+        while(modifiers.contains(peek().tokenType)) {
+            functionModifiers.add(addModifier(advance().tokenType));
+        }
+        // Check if modifiers have both public and private
+        if(functionModifiers.contains(Modifier.PB) && functionModifiers.contains(Modifier.PR)) {
+            logger.severe(String.format("Conflicting modifiers for function declaration %s and %s", "pb", "pr"));
+            throw new RuntimeException(String.format("Conflicting modifiers for function declaration %s and %s", "pb", "pr"));
+        }
+        consume(TokenType.Function, "Missing 'fn' in function declaration!");
+        String identifier = consume(TokenType.Identifier, "Missing identifier in function declaration!").lexeme;
+        consume(TokenType.ParenthesesOpen, "Missing '(' in function declaration!");
+
+        Set<Param> params = new HashSet<>();
+        boolean firstParam = true; // Ugly?
+        while(match(TokenType.Number, TokenType.Double, TokenType.String, TokenType.Boolean, TokenType.Comma)) {
+            // If it's the first param and there is a comma
+            if(firstParam && peek().tokenType == TokenType.Comma) {
+                logger.severe("Error on token ','!");
+                throw new RuntimeException("Error on token ','!");
+            // If it's not first param we need the comma
+            } else if(!firstParam == false && peek().tokenType != TokenType.Comma) {
+                logger.severe("Expected ','!");
+                throw new RuntimeException("Expected ','!");
+            } else if(!firstParam) {
+                consume(TokenType.Comma, "Expected ','!");
+            }
+            /// ^ this might genuinely be in the top 5 worst pieces of code I have ever written
+
+            // The type of the param
+            if(match(TokenType.Number, TokenType.Double, TokenType.String, TokenType.Boolean));
+                ValType paramType = translateToValType(advance().tokenType);
+
+            // The name of the param
+            String paramIdentifier = consume(TokenType.Identifier, "Identifier expected after type!").lexeme;
+
+            // Add the param
+            params.add(new Param(paramType, paramIdentifier));
+            firstParam = false;
+        }
+
+        // Close of the function header
+        consume(TokenType.ParenthesesClosed, "Missing ')'' in function declaration!");
+
+        // Now for returnType
+        consume(TokenType.Return, "Missing return type in function declaration!");
+        ValType returnType = translateToValType(advance().tokenType);
+
+        // Now for function body
+        NodeBlock contents;
+        if(match(TokenType.CurlyOpen)) {
+            contents = parseBlock();
+            // Check if the last statement is a return statement if the function returns anything else than void
+            if(returnType != ValType.VOID && !(contents.statements.getLast() instanceof NodeReturnStatement)) {
+                logger.severe("Missing return statement for function: " + identifier + "!");
+                throw new RuntimeException("Missing return statement for function: \" + identifier + \"!");
+            }
+        } else {
+            logger.severe("Missing '{' for body of function!");
+            throw new RuntimeException("Missing '{' for body of function!");
+        }
+        logger.info("Finished parsing function declaration");
+        return new NodeFunctionDeclaration(identifier, returnType, params, functionModifiers, contents);
+    }
+
+    private Modifier addModifier(TokenType modifier) {
+        return switch (modifier) {
+            case Final   -> Modifier.FIN;
+            case Public  -> Modifier.PB;
+            case Private -> Modifier.PR;
+            default      -> throw new RuntimeException("This is no modifier!");
+        };
+    }
+
+    private ValType translateToValType(TokenType type) {
+        return switch(type) {
+            case Number  -> ValType.NUMBER;
+            case Double  -> ValType.DOUBLE;
+            case String  -> ValType.STRING;
+            case Boolean -> ValType.BOOLEAN;
+            case Void    -> ValType.VOID;
+            default      -> throw new RuntimeException("Not a valid returntype: " + type + "!");
+        };
     }
 
     private void endStatement() {

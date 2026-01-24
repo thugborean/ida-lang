@@ -1,7 +1,7 @@
 package io.github.thugborean.vm.symbol;
 
-public enum Modifiers {
-    PUB,
-    PRI,
+public enum Modifier {
+    PB,
+    PR,
     FIN
 }

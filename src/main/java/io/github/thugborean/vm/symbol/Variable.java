@@ -8,7 +8,7 @@ public class Variable implements Symbol{
     private final ValType type;
     private Value value;
     
-    public Set<Modifiers> modifiers = new HashSet<>();
+    public Set<Modifier> modifiers = new HashSet<>();
 
     public Variable(ValType type, Value value) {
         this.type = type;

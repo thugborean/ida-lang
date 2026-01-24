@@ -43,8 +43,8 @@ public class Lexer {
             Map.entry("do", TokenType.Do),
 
             // Modifiers
-            Map.entry("pub", TokenType.Public),
-            Map.entry("pri", TokenType.Private),
+            Map.entry("pb", TokenType.Public),
+            Map.entry("pr", TokenType.Private),
             Map.entry("fin", TokenType.Final));
 
     private static final Map<String, TokenType> operators = Map.ofEntries(
