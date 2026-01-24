@@ -4,7 +4,6 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
-import io.github.thugborean.ast.node.statement.scope.*;
 import io.github.thugborean.ast.node.types.*;
 import io.github.thugborean.vm.symbol.ValType;
 
@@ -30,10 +29,7 @@ public interface ASTVisitor<T> {
     T visitNodePrintStatement(NodePrintStatement node);
     T visitNodeFunctionDeclaration(NodeFunctionDeclaration node);
     T visitNodeReturnStatement(NodeReturnStatement node);
-    // Visit NodeScope
-    T visitNodeEnterScope(NodeEnterScope node);
-    T visitNodeExitScope(NodeExitScope node);
-    //Visit misc aka can't be bothered to implement these methods
+    // Visit misc aka can't be bothered to implement these methods
     default T visitNodeType(NodeType node){return null;}
     default T visitNodeBlock(NodeBlock nodeBlock){return null;}
     default T visitNodeIfStatement(NodeIfStatement nodeIfStatement){return null;}

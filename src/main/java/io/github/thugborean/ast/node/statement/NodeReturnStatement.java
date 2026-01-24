@@ -15,6 +15,6 @@ public class NodeReturnStatement extends NodeStatement{
 
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
-        return visitor.visitNodeReturnStatement(this);
+        return visitor.visitNodeReturnStatement(this, null);
     }
 }

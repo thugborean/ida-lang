@@ -8,15 +8,13 @@ import io.github.thugborean.ast.node.statement.NodeBlock;
 import io.github.thugborean.ast.node.statement.NodeStatement;
 
 public class Function implements Symbol {
-    public final String identifier;
     public final ValType returnType;
 
     public Set<Param> parameters = new HashSet<>();
     public Set<Modifier> modifiers = new HashSet<>();
     public NodeBlock contents;    
 
-    public Function(String identifier, ValType returnType, Set<Param> paramaters, Set<Modifier> modifiers, NodeBlock contents) {
-        this.identifier = identifier;
+    public Function(ValType returnType, Set<Param> paramaters, Set<Modifier> modifiers, NodeBlock contents) {
         this.returnType = returnType;
         this.parameters = paramaters;
         this.modifiers = modifiers;

@@ -21,7 +21,7 @@ fn main() -> void {
         double balance;
 
         // This is a struct method
-        fn introduceYourself() -> string {
+        pb fn introduceYourself() -> string {
             return "Hello my name is " + name + " and I am " + age + " years old."
         }
     }
@@ -45,6 +45,6 @@ fn differentFunction(num a, double b, string c, char d, bool e) -> void {
 }
 
 // Use the -> operator when returning
-fn add(num a, num b) -> num {
+pr fn add(num a, num b) -> num {
     -> a + b;
 }

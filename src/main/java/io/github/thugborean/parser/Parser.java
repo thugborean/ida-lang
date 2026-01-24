@@ -20,6 +20,7 @@ public class Parser {
     public List<Token> tokens;
     private int index = 0;
     private int curlyDepth = 0;
+    private boolean insideFunction = false;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -124,6 +125,7 @@ public class Parser {
         if(match(TokenType.Print)) return parsePrintStatement();
         if(match(TokenType.CurlyOpen)) return parseBlock();
         if(match(TokenType.Function, TokenType.Public, TokenType.Private)) return parseFunctionDeclaration();
+        if(match(TokenType.Return)) return parseReturnStatement();
         return parseExpressionStatement();
     }
 
@@ -323,6 +325,7 @@ public class Parser {
     // If this is called we have either encountered fn, pb, pr
     private NodeFunctionDeclaration parseFunctionDeclaration() {
         logger.info("Parsing function declaration...");
+        insideFunction = true;
         // Look for modifiers
         Set<Modifier> functionModifiers = new HashSet<>();
         while(modifiers.contains(peek().tokenType)) {
@@ -345,7 +348,7 @@ public class Parser {
                 logger.severe("Error on token ','!");
                 throw new RuntimeException("Error on token ','!");
             // If it's not first param we need the comma
-            } else if(!firstParam == false && peek().tokenType != TokenType.Comma) {
+            } else if(!firstParam && peek().tokenType != TokenType.Comma) {
                 logger.severe("Expected ','!");
                 throw new RuntimeException("Expected ','!");
             } else if(!firstParam) {
@@ -353,8 +356,8 @@ public class Parser {
             }
             /// ^ this might genuinely be in the top 5 worst pieces of code I have ever written
 
-            // The type of the param
             if(match(TokenType.Number, TokenType.Double, TokenType.String, TokenType.Boolean));
+                // The type of the param
                 ValType paramType = translateToValType(advance().tokenType);
 
             // The name of the param
@@ -376,15 +379,11 @@ public class Parser {
         NodeBlock contents;
         if(match(TokenType.CurlyOpen)) {
             contents = parseBlock();
-            // Check if the last statement is a return statement if the function returns anything else than void
-            if(returnType != ValType.VOID && !(contents.statements.getLast() instanceof NodeReturnStatement)) {
-                logger.severe("Missing return statement for function: " + identifier + "!");
-                throw new RuntimeException("Missing return statement for function: \" + identifier + \"!");
-            }
         } else {
             logger.severe("Missing '{' for body of function!");
             throw new RuntimeException("Missing '{' for body of function!");
         }
+        insideFunction = false;
         logger.info("Finished parsing function declaration");
         return new NodeFunctionDeclaration(identifier, returnType, params, functionModifiers, contents);
     }
@@ -407,6 +406,28 @@ public class Parser {
             case Void    -> ValType.VOID;
             default      -> throw new RuntimeException("Not a valid returntype: " + type + "!");
         };
+    }
+/* 
+    private ValType translateLiteralToValType(TokenType literal) {
+        return switch(literal) {
+            case NumericLiteral  -> ValType.NUMBER;
+            case DoubleLiteral  -> ValType.DOUBLE;
+            case StringLiteral  -> ValType.STRING;
+            case BooleanLiteral -> ValType.BOOLEAN;
+            default      -> throw new RuntimeException("Not a valid returntype: " + literal + "!");
+        };
+    }
+*/
+    private NodeReturnStatement parseReturnStatement() {
+        if(!insideFunction) {
+            logger.severe("Return statement outside of function!");
+            throw new RuntimeException("Return statement outside of function!");
+        }
+        consume(TokenType.Return, "Missing '->' in return statement!");
+        // Typechecker will handle validating the returnType
+        NodeExpression toReturn = pratt(0);
+        endStatement();
+        return new NodeReturnStatement(null, toReturn);
     }
 
     private void endStatement() {
@@ -466,10 +487,10 @@ public class Parser {
     private boolean isAtEnd() {
         return index >= tokens.size() || peek().tokenType == TokenType.EOF;
     }
-
+/* 
     private boolean isExpressionToken(TokenType tokenType) {
         return expressionTokens.contains(tokenType) ? true : false;
     }
-
+*/
     record BindingPair(float left, float right) {}
 }

@@ -1,10 +1,12 @@
 package io.github.thugborean.ast.node.expression.literal;
 import io.github.thugborean.ast.node.expression.NodeExpression;
 import io.github.thugborean.syntax.Token;
+import io.github.thugborean.vm.symbol.ValType;
 
 public abstract class NodeLiteral extends NodeExpression{
     public final Token token;
     public final Object value;
+    public ValType resolvedType; // ?
 
     public NodeLiteral(Token token) {
         this.token = token;

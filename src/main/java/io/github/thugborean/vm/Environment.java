@@ -16,7 +16,7 @@ public class Environment {
     public Environment(Environment parentEnv) {
         this.parentEnv = parentEnv;
         this.scopeLevel = globalScopeDepth;
-        globalScopeDepth++;
+        globalScopeDepth++; // This might need to be switched? 
     }
 
     public Environment() {
@@ -31,12 +31,12 @@ public class Environment {
         if(variableExists(identifier)) return localVariables.get(identifier);
             else if(parentEnv != null) {
                 return parentEnv.getVariable(identifier);
-            } else throw new RuntimeException("Variable with identifer " + identifier + "does not exist");
+            } else throw new RuntimeException("Variable with identifer " + identifier + "does not exist!");
     }
 
     // If the variable identifier is not already used inside the local scope then we can declare it
     public void declareVariable(String identifier, Variable variable) {
-        if(localVariables.containsKey(identifier)) throw new RuntimeException("Variable "+ identifier +" is already delcared in this scope");
+        if(localVariables.containsKey(identifier)) throw new RuntimeException("Variable "+ identifier +" is already delcared in this scope!");
         localVariables.put(identifier, variable);
     }
 
@@ -49,7 +49,7 @@ public class Environment {
                 currentEnv = parentEnv;
                 oldVariable = parentEnv.getVariable(identifier);
             }
-        else throw new RuntimeException("Variable " + identifier + " has not been declared in this scope");
+        else throw new RuntimeException("Variable " + identifier + " has not been declared in this scope!");
         Variable newVariable = new Variable(oldVariable.getType(), value);
         currentEnv.localVariables.put(identifier, newVariable);
     }

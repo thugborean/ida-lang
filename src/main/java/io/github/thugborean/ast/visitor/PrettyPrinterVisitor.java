@@ -4,7 +4,6 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
-import io.github.thugborean.ast.node.statement.scope.*;
 import io.github.thugborean.ast.node.types.NodeType;
 import io.github.thugborean.vm.symbol.ValType;
 
@@ -145,13 +144,11 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     }
 
     @Override
-    public Void visitNodeEnterScope(NodeEnterScope node) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitNodeEnterScope'");
-    }
-
-    @Override
-    public Void visitNodeExitScope(NodeExitScope node) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitNodeExitScope'");
+    public Void visitNodeBlock(NodeBlock node) {
+        for(NodeStatement statement : node.statements) {
+            statement.accept(this);
+        }
+        return null;
     }
 
     @Override
@@ -162,7 +159,7 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         line("Return type: " + node.returnType);
         line("Parameters: " + node.parameters);
         line("Modifiers: " + node.modifiers);
-        line("Contents: " + node.contents);
+        // line("Contents: " + node.contents.accept(this));
         indentLevel--;
         return null;
     }

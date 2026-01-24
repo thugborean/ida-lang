@@ -1,7 +1,8 @@
 num target = 4;
+num result = target % 2;
 
-if(target % 2 == 0) {
-    print("even");
+if(result == 0) {
+    print("The number " + target + " is even!");
 } else {
-    print("odd");
+    print("The number " + target + " is odd!);
 }

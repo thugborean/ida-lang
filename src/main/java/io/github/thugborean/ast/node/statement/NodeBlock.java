@@ -20,4 +20,13 @@ public class NodeBlock extends NodeStatement{
     public <T> T accept(ASTVisitor<T> visitor) {
         return visitor.visitNodeBlock(this);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sB = new StringBuilder();
+        for(NodeStatement statement : statements) {
+            sB.append(statement.toString());
+        }
+        return sB.toString();
+    }
 }

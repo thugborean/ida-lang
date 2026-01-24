@@ -10,7 +10,7 @@ import io.github.thugborean.syntax.TokenType;
 public class Lexer {
     private int index = 0;
     private int line = 1;
-    private List<Token> tokens = new ArrayList<>();
+    private List<Token> tokens = new ArrayList<>(1000);
 
     // What is to be lexed
     private String source;

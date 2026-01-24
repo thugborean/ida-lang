@@ -10,8 +10,6 @@ import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
 import io.github.thugborean.ast.node.statement.*;
-import io.github.thugborean.ast.node.statement.scope.NodeEnterScope;
-import io.github.thugborean.ast.node.statement.scope.NodeExitScope;
 import io.github.thugborean.logging.LoggingManager;
 import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.VM;
@@ -310,21 +308,35 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         return null;
     }
 
-    @Override
-    public ValType visitNodeEnterScope(NodeEnterScope node) {
-        vm.enterScope();
-        logger.info("Entering scope, level: " + Environment.globalScopeDepth);
-        return null;
-    }
-
-    @Override
-    public ValType visitNodeExitScope(NodeExitScope node) {
-        logger.info("Exiting scope, level: " + Environment.globalScopeDepth);
-        vm.exitScope();
-        return null;
-    }
-
     public void print(Object x) {
         System.out.println(x);
+    }
+
+    @Override
+    public ValType visitNodeFunctionDeclaration(NodeFunctionDeclaration node) {
+        for(NodeStatement statement : node.contents.statements) {
+            statement.accept(this);
+        }
+        return null;
+    }
+
+    // THE node.returnType is NULL IT DOES NOT GET SET IN THE PARSER!!!!!!!!!!!!!!!!!
+    @Override
+    public ValType visitNodeReturnStatement(NodeReturnStatement node) {
+        ValType expressionType = node.returnValue.accept(this);
+        if(expressionType != node.returnType) {
+            logger.severe("Return-statement does not have the same return type as the function declaration!");
+            throw new RuntimeException("Return-statement does not have the same return type as the function declaration!");
+        }
+
+        if(node.returnType == ValType.VOID && node.returnValue != null) {
+            logger.severe("Trying to return a value in a void-function");
+            throw new RuntimeException("Trying to return a value in a void-function");
+        }
+        return null;
+    }
+
+    private boolean doesReturn(NodeStatement node) {
+        return false;
     }
 }
