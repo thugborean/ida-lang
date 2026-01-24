@@ -95,22 +95,6 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         return null;
     }
 
-    @Override
-    public Void visitNodeAssignStatement(NodeAssignStatement node) {
-        line("Assign Statement: ");
-        indentLevel++;
-
-        line("reference: " + node.identifier);
-
-        line("assigned: ");
-        indentLevel++;
-        node.expression.accept(this);
-        indentLevel--;
-
-        indentLevel--;
-        return null;
-    }
-
     private void indent() {
         for(int i = 0; i < indentLevel; i++) output.append("    ");
     }
@@ -158,16 +142,6 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
     public Void visitNodeNullLiteral(NodeNullLiteral node) {
         line(node.token.lexeme);
         return null;
-    }
-
-    @Override
-    public Void visitNodeIncrement(NodeIncrement nodeIncrement) {
-        throw new UnsupportedOperationException("Unimplemented method 'visitNodeIncrement'");
-    }
-
-    @Override
-    public Void visitNodeDecrement(NodeDecrement node) {
-        throw new UnsupportedOperationException("Unimplemented method 'visiNodeDecrement'");
     }
 
     @Override

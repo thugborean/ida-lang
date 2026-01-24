@@ -24,14 +24,10 @@ public interface ASTVisitor<T> {
     T visitNodeBinaryExpression(NodeBinaryExpression node, ValType type);
     T visitNodeUnaryExpression(NodeUnaryExpression node, ValType type);
     T visitNodeVariableReference(NodeVariableReference node);
-    // Stand-alone expressions
-    T visitNodeIncrement(NodeIncrement node);
-    T visitNodeDecrement(NodeDecrement node);
     // Visiting NodeStatement
     T visitNodeVariableDeclaration(NodeVariableDeclaration node);
     T visitNodeExpressionStatement(NodeExpressionStatement node);
     T visitNodePrintStatement(NodePrintStatement node);
-    T visitNodeAssignStatement(NodeAssignStatement node);
     // Visit NodeScope
     T visitNodeEnterScope(NodeEnterScope node);
     T visitNodeExitScope(NodeExitScope node);

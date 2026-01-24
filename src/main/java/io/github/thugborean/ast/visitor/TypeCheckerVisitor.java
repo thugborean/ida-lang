@@ -59,7 +59,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         Map.entry("<", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)),
         Map.entry("<=", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)),
         Map.entry(">", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)),
-        Map.entry(">=", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN))
+        Map.entry(">=", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN)),
+        Map.entry("=", Set.of(ValType.NUMBER, ValType.DOUBLE, ValType.CHARACTER, ValType.STRING, ValType.BOOLEAN))
     );
 
     @Override
@@ -76,7 +77,22 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         ValType lhs = node.leftHandSide.accept(this);
         ValType rhs = node.rightHandSide.accept(this);
         String operator = node.operator.lexeme;
-        // Does an overall check for rules regarding the binary operator
+
+        // BANDAID
+        if (operator.equals("=")) {
+            contextStack.push(lhs);
+            rhs = node.rightHandSide.accept(this);
+            contextStack.pop();
+
+            if (!isAssignable(lhs, rhs)) {
+                logger.severe(String.format("Cannot assign %s to %s", lhs, rhs));
+                throw new RuntimeException(String.format("Cannot assign %s to %s", lhs, rhs));
+            }
+            node.resolvedType = lhs; // or rhs
+            return node.resolvedType;
+        }
+        
+        // Does an overall check for rules regarding the binary operators
         if(!(binaryOperatorRules.get(operator).contains(lhs)) || !(binaryOperatorRules.get(operator).contains(rhs))) {
             logger.severe(String.format("Operator %s does not support operands %s and %s", operator, lhs, rhs));
             throw new RuntimeException(String.format("Operator %s does not support operands %s and %s", operator, lhs, rhs));
@@ -147,7 +163,10 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodeVariableReference(NodeVariableReference node) {
         logger.info("Checking if Symbol is present: " + node.identifier);
-        if(vm.getCurrentEnv().getVariable(node.identifier) == null) throw new RuntimeException("Unrecognized symbol " + node.identifier);
+        if(vm.getCurrentEnv().getVariable(node.identifier) == null) {
+            logger.severe("Unrecognized symbol " + node.identifier);
+            throw new RuntimeException("Unrecognized symbol " + node.identifier);
+        }
         return vm.getCurrentEnv().getVariable(node.identifier).getType();
     }
 
@@ -165,8 +184,13 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
         // Check if the assignment matches the type
         logger.info("Checking if initializer is type-compatible...");
+        ValType initializerType = null;
         if(node.initializer != null)
-            node.initializer.accept(this);
+            initializerType = node.initializer.accept(this);
+            if(!isAssignable(declaredType, initializerType)) {
+                logger.severe(String.format("Cannot assign %s to %s", declaredType, initializerType));
+                throw new RuntimeException(String.format("Cannot assign %s to %s", declaredType, initializerType));
+            }
 
         // Remove the expected type from the context
         contextStack.pollLast();
@@ -175,25 +199,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     @Override
     public ValType visitNodeExpressionStatement(NodeExpressionStatement node) {
-        // WIP
-        node.accept(this);
+        node.expression.accept(this);
         return null;
-    }
-
-    @Override
-    public ValType visitNodeAssignStatement(NodeAssignStatement node) {
-        ValType type = vm.getCurrentEnv().getVariable(node.identifier).getType();
-
-        evaluateContext(type);
-        // Check if the value we are assigning can be assigned to the current type
-        if(!isAssignable(type, node.expression.accept(this))) {
-            logger.severe(String.format("Found illegal assignment: %s != %s", type, node.expression.accept(this)));
-            throw new RuntimeException("Illegal Assignment: " + type + "!=" + node.expression.accept(this));
-        }
-        contextStack.pollLast();
-
-        logger.info(String.format("Type: %s is compatible with initializer: %s", type, node.expression.accept(this)));
-        return node.expression.accept(this);
     }
 
     @Override
@@ -279,16 +286,6 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     private ValType getCurrentContext() {
         return contextStack.peekLast();
-    }
-
-    @Override
-    public ValType visitNodeIncrement(NodeIncrement nodeIncrement) {
-        return null;
-    }
-
-    @Override
-    public ValType visitNodeDecrement(NodeDecrement node) {
-        return null;
     }
 
     @Override
