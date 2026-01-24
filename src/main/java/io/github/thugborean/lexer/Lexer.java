@@ -151,34 +151,18 @@ public class Lexer {
                 subString.append(peek());
                 incrementIndex();
                 tokens.add(evaluateStringLiteral(subString.toString()));
-                // CHARACTER LITERAL
-            } else if (peek() == '\'') {
-                StringBuilder subString = new StringBuilder();
-                // Get the first '\''
+            } 
+            // OPERATOR LOGIC
+            // ------------------------------------------------------------------------------
+            else if (operators.containsKey(Character.toString(peek()))) {
+            StringBuilder subString = new StringBuilder();
+            do {
                 subString.append(peek());
                 incrementIndex();
-                // Get the character
-                subString.append(peek());
-                incrementIndex();
-                // Do some checks
-                if (Character.isAlphabetic(peek()))
-                    throw new RuntimeException("Lexer Error: Only one character allowed in a char");
-                else if (peek() != '\'')
-                    throw new RuntimeException("Lexer Error: Character literal was not closed properly");
-                subString.append(peek());
-                incrementIndex();
-                tokens.add(evaluateCharacterLiteral(subString.toString()));
-                // OPERATOR LOGIC
-                // ------------------------------------------------------------------------------
-            } else if (operators.containsKey(Character.toString(peek()))) {
-                StringBuilder subString = new StringBuilder();
-                do {
-                    subString.append(peek());
-                    incrementIndex();
-                } while (operators.containsKey(Character.toString(peek())));
+            } while (operators.containsKey(Character.toString(peek())));
                 tokens.add(evaluateOperator(subString.toString()));
-                // SCOPE LOGIC
-                // ---------------------------------------------------------------------------------
+            // SCOPE LOGIC
+            // ---------------------------------------------------------------------------------
             } else if (scopes.containsKey(Character.toString(peek()))) {
                 tokens.add(evaluateScope(Character.toString(peek())));
                 incrementIndex();
@@ -237,12 +221,6 @@ public class Lexer {
 
     private Token evaluateStringLiteral(String literal) {
         return new Token(TokenType.StringLiteral, literal, literal, line);
-    }
-
-    private Token evaluateCharacterLiteral(String literal) {
-        if (literal.length() > 3)
-            throw new RuntimeException("Lexer Error: Only one character allowed in character literal!");
-        return new Token(TokenType.CharacterLiteral, literal, literal, line);
     }
 
     private Token evaluateOperator(String operator) {
