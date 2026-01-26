@@ -15,7 +15,8 @@ import io.github.thugborean.vm.Environment;
 import io.github.thugborean.vm.VM;
 import io.github.thugborean.vm.symbol.*;
 
-// TODO: Fix variables being able to use themselves upon declaration, fix double casting inside boolean expressions
+// TODO: Fix variables being able to use themselves upon declaration, fix double casting inside boolean expressions, fix better context and resolved types, fix return checker for typechecker
+// fix function calls into expressions
 public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     // Create the logger and give it the class name
     private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
@@ -337,6 +338,9 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     }
 
     private boolean doesReturn(NodeStatement node) {
+        if(node instanceof NodeIfStatement) {
+            
+        }
         return false;
     }
 }
