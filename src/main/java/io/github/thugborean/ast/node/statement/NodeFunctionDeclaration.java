@@ -22,20 +22,6 @@ public class NodeFunctionDeclaration extends NodeStatement{
         this.contents = contents;
     }
 
-    // Returns false if the last statement isn't a return-statement if the return type is anything other than void
-    // Adds the contents of the function to it's AST
-    public boolean addContents(NodeBlock contents) {
-        if(returnType != ValType.VOID) {
-            NodeStatement last = contents.statements.getLast();
-            if(!(last instanceof NodeReturnStatement)) return false;
-                else {
-                    this.contents = contents;
-                }
-        }
-        this.contents = contents;
-        return true;
-    }
-
     @Override
     public <T> T accept(ASTVisitor<T> visitor) {
         return visitor.visitNodeFunctionDeclaration(this);

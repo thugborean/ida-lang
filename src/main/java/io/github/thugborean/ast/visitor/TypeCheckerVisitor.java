@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import javax.management.RuntimeMBeanException;
+
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
 import io.github.thugborean.ast.node.expression.literal.*;
@@ -21,7 +23,9 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     // Create the logger and give it the class name
     private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
     private final Deque<ValType> contextStack = new ArrayDeque<>();
+    private NodeFunctionDeclaration currentFunction;
     private final VM vm;
+
 
     public TypeCheckerVisitor(Environment environment, VM vm) {
         this.vm = vm;
@@ -315,31 +319,66 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     @Override
     public ValType visitNodeFunctionDeclaration(NodeFunctionDeclaration node) {
-        for(NodeStatement statement : node.contents.statements) {
-            statement.accept(this);
+        currentFunction = node;
+        try{
+            for(NodeStatement statement : node.contents.statements) {
+                statement.accept(this);
+            }
+            if(node.returnType != ValType.VOID && !doesReturn(node.contents)) {
+                logger.severe("Function does not have all valid return paths!");
+                throw new RuntimeException("Function does not have all valid return paths!");
+            }
+        } finally {
+            currentFunction = null;
         }
         return null;
     }
 
-    // THE node.returnType is NULL IT DOES NOT GET SET IN THE PARSER!!!!!!!!!!!!!!!!!
+    // It's returnType is null by default we need to figure it out, We need to know the returnType of the function that this node resides inside
     @Override
     public ValType visitNodeReturnStatement(NodeReturnStatement node) {
-        ValType expressionType = node.returnValue.accept(this);
-        if(expressionType != node.returnType) {
-            logger.severe("Return-statement does not have the same return type as the function declaration!");
-            throw new RuntimeException("Return-statement does not have the same return type as the function declaration!");
+        // Figure out the type of the return expression
+        if(node.returnValue == null) {
+            if(currentFunction.returnType != ValType.VOID) {
+                logger.severe("No expression after return-statement!");
+                throw new RuntimeException("No expression after return-statement!");
+            } else node.returnType = ValType.VOID;
+
+        } else node.returnType = node.returnValue.accept(this);
+
+        if(node.returnType != currentFunction.returnType) {
+            logger.severe(String.format("Function does not have compatible return types %s != %s", node.returnType, currentFunction.returnType));
+            throw new RuntimeException(String.format("Function does not have compatible return types %s != %s", node.returnType, currentFunction.returnType));
         }
 
-        if(node.returnType == ValType.VOID && node.returnValue != null) {
-            logger.severe("Trying to return a value in a void-function");
-            throw new RuntimeException("Trying to return a value in a void-function");
+        if(currentFunction.returnType == ValType.VOID && node.returnValue != null) {
+            logger.severe("Cannot return an expression withing a void-function!");
+            throw new RuntimeException("Cannot return an expression withing a void-function!");
         }
         return null;
     }
 
+    // if and while-statements are the only nested statements for now 
     private boolean doesReturn(NodeStatement node) {
+        if(node instanceof NodeReturnStatement) {
+            return true;
+        }
         if(node instanceof NodeIfStatement) {
-            
+            NodeIfStatement ifStatement = (NodeIfStatement)node;
+            // If there is no else-block then we don't need to check it
+            if(ifStatement.elseBlock == null) return false;
+            return doesReturn(ifStatement.thenBlock) && doesReturn(ifStatement.elseBlock);
+        }
+        if(node instanceof NodeWhileStatement) {
+            // NodeWhileStatement whileStatement = (NodeWhileStatement)node;
+            // return doesReturn(whileStatement.thenBlock);
+            return false;
+        }
+        if(node instanceof NodeBlock) {
+            NodeBlock block = (NodeBlock)node;
+            for(NodeStatement statement : block.statements) {
+                if(doesReturn(statement)) return true;
+            }
         }
         return false;
     }

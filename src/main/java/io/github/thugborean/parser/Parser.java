@@ -419,11 +419,12 @@ public class Parser {
     }
 */
     private NodeReturnStatement parseReturnStatement() {
+        logger.info("Parsing return-statement");
         if(!insideFunction) {
-            logger.severe("Return statement outside of function!");
+            logger.severe("Return-statement outside of function!");
             throw new RuntimeException("Return statement outside of function!");
         }
-        consume(TokenType.Return, "Missing '->' in return statement!");
+        consume(TokenType.Return, "Missing '->' in return-statement!");
         // Typechecker will handle validating the returnType
         NodeExpression toReturn = pratt(0);
         endStatement();
