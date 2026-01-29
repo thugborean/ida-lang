@@ -23,6 +23,7 @@ public interface ASTVisitor<T> {
     T visitNodeBinaryExpression(NodeBinaryExpression node, ValType type);
     T visitNodeUnaryExpression(NodeUnaryExpression node, ValType type);
     T visitNodeVariableReference(NodeVariableReference node);
+    T visitNodeFunctionCall(NodeFunctionCall node);
     // Visiting NodeStatement
     T visitNodeVariableDeclaration(NodeVariableDeclaration node);
     T visitNodeExpressionStatement(NodeExpressionStatement node);

@@ -169,4 +169,18 @@ public class PrettyPrinterVisitor implements ASTVisitor<Void> {
         line("Return statement -> " + node.returnType);
         return null;
     }
+
+    @Override
+    public Void visitNodeFunctionCall(NodeFunctionCall node) {
+        line("Function call: ");
+        indentLevel++;
+        line("Identifier: " + node.identifier);
+        line("Arguments: ");
+        indentLevel++;
+        for(NodeExpression expr : node.arguments) {
+            expr.accept(this);
+        }
+        indentLevel -= 2;
+        return null;
+    }
 }

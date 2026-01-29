@@ -8,6 +8,7 @@ import io.github.thugborean.ast.visitor.InterpreterVisitor;
 import io.github.thugborean.ast.visitor.TypeCheckerVisitor;
 import io.github.thugborean.lexer.Lexer;
 import io.github.thugborean.parser.Parser;
+import io.github.thugborean.vm.symbol.Function;
 import io.github.thugborean.vm.symbol.FunctionPool;
 
 public class VM {
@@ -16,6 +17,7 @@ public class VM {
     private Program program;
     public Deque<Environment> envStack = new ArrayDeque<>();
     public FunctionPool functionPool = new FunctionPool();
+    public Function entryPoint;
 
     public void execute(String source) {
         parser = new Parser(lexer.tokenize(source));

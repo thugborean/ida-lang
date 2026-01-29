@@ -22,7 +22,11 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
     @Override
     public void walkTree(Program program) {
         logger.info("Interpreting Program...");
-        for (NodeStatement statement : program.nodes) {
+        // for (NodeStatement statement : program.nodes) {
+        //     statement.accept(this);
+        // }
+        // Start at the entry function
+        for(NodeStatement statement : vm.entryPoint.contents.statements) {
             statement.accept(this);
         }
         logger.info("Finished Interpreting Program!");
@@ -81,18 +85,16 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
                     sB.append(left.toString()).append(right.toString());
                     return new Value(sB.toString());
                 }
-                case Assign: {
-                    logger.info(String.format("Performing string concatenation: %s %s %s", left, node.operator.lexeme, right));
-                    StringBuilder sB = new StringBuilder();
-                    sB.append(left.toString()).append(right.toString());
-                    return new Value(sB.toString());
+                case Assign: { // WIP
+                    logger.info(String.format("Assigning %s to %s", identifier, right));
+                    vm.getCurrentEnv().assignVariable(identifier, right);
+                    return right;
                 }
                 default: {
                     logger.severe("Unknown operator " + node.operator.lexeme);
                     throw new RuntimeException("Couldn't find operator for string expression!");
                 }
             }
-
         } else if(node.resolvedType == ValType.BOOLEAN) {
             Object lval = left.raw();
             Object rval = right.raw();
@@ -115,11 +117,10 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
                 case BangEquals: {
                     return new Value(bangEquals(lval, rval));
                 }
-                case Assign: {
-                    logger.info(String.format("Performing string concatenation: %s %s %s", left, node.operator.lexeme, right));
-                    StringBuilder sB = new StringBuilder();
-                    sB.append(left.toString()).append(right.toString());
-                    return new Value(sB.toString());
+                case Assign: { // WIP
+                    logger.info(String.format("Assigning %s to %s", identifier, right));
+                    vm.getCurrentEnv().assignVariable(identifier, right);
+                    return right;
                 }
                 default: {
                     logger.severe("Unknown operator " + node.operator.lexeme);
@@ -308,15 +309,27 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         return Boolean.valueOf(!l.equals(r));
     }
 
+    // The interpreter shouldn't touch function declarations
     @Override
     public Value visitNodeFunctionDeclaration(NodeFunctionDeclaration node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitNodeFunctionDeclaration'");
+        return null;
     }
 
     @Override
     public Value visitNodeReturnStatement(NodeReturnStatement node) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visitNodeReturnStatement'");
+        return node.returnValue.accept(this);
+    }
+
+    @Override
+    public Value visitNodeFunctionCall(NodeFunctionCall node) {
+        Function fn = vm.functionPool.getFunction(node.identifier);
+        for(NodeStatement statement : fn.contents.statements) {
+            if(statement instanceof NodeReturnStatement) {
+                NodeReturnStatement returnStatement = (NodeReturnStatement)statement;
+                return returnStatement.returnValue.accept(this);
+            }
+            statement.accept(this);
+        }
+        return null;
     }
 }

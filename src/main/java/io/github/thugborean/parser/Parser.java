@@ -68,6 +68,9 @@ public class Parser {
         TokenType.GreaterThan,
         TokenType.GreaterThanOrEquals,
 
+        TokenType.Comma,
+        TokenType.Dot,
+
         TokenType.ParenthesesOpen,
         TokenType.ParenthesesClosed,
 
@@ -149,6 +152,15 @@ public class Parser {
             case AtseriskAsterisk -> {
                 yield new BindingPair(5.1f, 5.0f);
             }
+            case PlusPlus -> {
+                yield new BindingPair(5.1f, 5.0f);
+            }
+            case MinusMinus -> {
+                yield new BindingPair(5.1f, 5.0f);
+            }
+            case ParenthesesOpen -> {
+                yield new BindingPair(9.1f, 0f);
+            }
             default -> {
                 yield new BindingPair(0.0f, 0.0f);
             }
@@ -206,6 +218,9 @@ public class Parser {
             case Minus: {
                 return new NodeUnaryExpression(token, pratt(getPrefixBindingPower(token).left));
             }
+            case AtseriskAsterisk: {
+                return new NodeUnaryExpression(token, pratt(getInfixBindingPower(token).left));
+            }
             case ParenthesesOpen: {
                 NodeExpression expr = pratt(0);
                 consume(TokenType.ParenthesesClosed, "Missing ')'");
@@ -218,15 +233,31 @@ public class Parser {
         }
     }
 
+    // Add ++ and -- !
     private NodeExpression parseInfix(NodeExpression left, Token operator) {
-        NodeBinaryExpression expression = new NodeBinaryExpression();
-        expression.leftHandSide = left;
-        expression.operator = operator;
-        float bindingPower = getInfixBindingPower(operator).right;
-        expression.rightHandSide = pratt(bindingPower);
+    // function call
+    if (operator.tokenType == TokenType.ParenthesesOpen) {
+        NodeFunctionCall functionCall = new NodeFunctionCall();
+        functionCall.identifier = left.toString();
 
-        return expression;
+        if (peek().tokenType != TokenType.ParenthesesClosed) {
+            do {
+                functionCall.arguments.add(pratt(0));
+            } while (match(TokenType.Comma) && advance() != null);
+        }
+
+        consume(TokenType.ParenthesesClosed, "Missing ')'");
+        return functionCall;
     }
+
+    // binary expr
+    NodeBinaryExpression expression = new NodeBinaryExpression();
+    expression.leftHandSide = left;
+    expression.operator = operator;
+    float bindingPower = getInfixBindingPower(operator).right;
+    expression.rightHandSide = pratt(bindingPower);
+    return expression;
+}
 
     private void isExpressionToken(Token token) {
         if(!expressionTokens.contains(token.tokenType)) {
@@ -366,6 +397,7 @@ public class Parser {
             // Add the param
             params.add(new Param(paramType, paramIdentifier));
             firstParam = false;
+            logger.info("Finished parsing function declaration");
         }
 
         // Close of the function header

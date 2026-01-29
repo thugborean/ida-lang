@@ -31,7 +31,7 @@ public class Environment {
         if(variableExists(identifier)) return localVariables.get(identifier);
             else if(parentEnv != null) {
                 return parentEnv.getVariable(identifier);
-            } else throw new RuntimeException("Variable with identifer " + identifier + "does not exist!");
+            } else throw new RuntimeException("Variable with identifer " + identifier + " does not exist!");
     }
 
     // If the variable identifier is not already used inside the local scope then we can declare it

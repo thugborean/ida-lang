@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.management.RuntimeMBeanException;
 
 import io.github.thugborean.ast.node.Program;
 import io.github.thugborean.ast.node.expression.*;
@@ -68,12 +67,34 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     @Override
     public void walkTree(Program program) {
+        logger.info("Populating function pool...");
+        populateFunctionPool(program);
+        logger.info("Finished populating function pool");
         logger.info("TypeChecking Program...");
         for(NodeStatement statement : program.nodes) {
             statement.accept(this);
         }
+        // If we don't find the entry function
+        String entryName = vm.functionPool.entryName;
+        if(!vm.functionPool.checkForEntry()) {
+            logger.severe("No entry point found! Function with name " + entryName + " required!");
+            throw new RuntimeException("No entry point found! Function with name " + entryName + " required!");
+        } else {
+            vm.entryPoint = vm.functionPool.getFunction(entryName);
+            logger.info("Entry point: " + entryName + " has been set");
+        }
         logger.info("Finished TypeChecking Program!");
     }
+
+    public void populateFunctionPool(Program program) {
+        for(NodeStatement statement : program.nodes) {
+            if(statement instanceof NodeFunctionDeclaration) {
+                NodeFunctionDeclaration functionDeclaration = (NodeFunctionDeclaration)statement;
+                // We only need the identifier and the return type for now
+                vm.functionPool.declareFunction(functionDeclaration.identifier, new Function(functionDeclaration.returnType, null, null, null));
+            }
+        }
+    } 
 
     @Override
     public ValType visitNodeBinaryExpression(NodeBinaryExpression node, ValType type) {
@@ -331,6 +352,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         } finally {
             currentFunction = null;
         }
+        // If all passes then add the the body to the function, this is inneficient but will do for now
+        vm.functionPool.declareFunctionBody(node.identifier, new Function(node.returnType, node.parameters, node.modifiers, node.contents));
         return null;
     }
 
@@ -343,7 +366,6 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
                 logger.severe("No expression after return-statement!");
                 throw new RuntimeException("No expression after return-statement!");
             } else node.returnType = ValType.VOID;
-
         } else node.returnType = node.returnValue.accept(this);
 
         if(node.returnType != currentFunction.returnType) {
@@ -381,5 +403,11 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             }
         }
         return false;
+    }
+
+    // WIP
+    @Override
+    public ValType visitNodeFunctionCall(NodeFunctionCall node) {
+        return vm.functionPool.getFunction(node.identifier).returnType;
     }
 }
