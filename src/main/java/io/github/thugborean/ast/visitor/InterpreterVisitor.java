@@ -322,6 +322,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
     @Override
     public Value visitNodeFunctionCall(NodeFunctionCall node) {
+        vm.enterScope();
         Function fn = vm.functionPool.getFunction(node.identifier);
         for(NodeStatement statement : fn.contents.statements) {
             if(statement instanceof NodeReturnStatement) {
@@ -330,6 +331,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
             }
             statement.accept(this);
         }
+        vm.exitScope();
         return null;
     }
 }

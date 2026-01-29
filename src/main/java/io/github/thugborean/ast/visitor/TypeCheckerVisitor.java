@@ -17,7 +17,7 @@ import io.github.thugborean.vm.VM;
 import io.github.thugborean.vm.symbol.*;
 
 // TODO: Fix variables being able to use themselves upon declaration, fix double casting inside boolean expressions, fix better context and resolved types, fix return checker for typechecker
-// fix function calls into expressions
+// fix function calls into expressions, fix functions 
 public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     // Create the logger and give it the class name
     private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
@@ -340,6 +340,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
 
     @Override
     public ValType visitNodeFunctionDeclaration(NodeFunctionDeclaration node) {
+        vm.enterScope();
         currentFunction = node;
         try{
             for(NodeStatement statement : node.contents.statements) {
@@ -354,6 +355,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         }
         // If all passes then add the the body to the function, this is inneficient but will do for now
         vm.functionPool.declareFunctionBody(node.identifier, new Function(node.returnType, node.parameters, node.modifiers, node.contents));
+        vm.exitScope();
         return null;
     }
 
