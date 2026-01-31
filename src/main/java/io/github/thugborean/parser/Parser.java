@@ -2,6 +2,7 @@ package io.github.thugborean.parser;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -371,7 +372,7 @@ public class Parser {
         String identifier = consume(TokenType.Identifier, "Missing identifier in function declaration!").lexeme;
         consume(TokenType.ParenthesesOpen, "Missing '(' in function declaration!");
 
-        Set<Param> params = new HashSet<>();
+        Set<Param> params = new LinkedHashSet<>();
         boolean firstParam = true; // Ugly?
         while(match(TokenType.Number, TokenType.Double, TokenType.String, TokenType.Boolean, TokenType.Comma)) {
             // If it's the first param and there is a comma

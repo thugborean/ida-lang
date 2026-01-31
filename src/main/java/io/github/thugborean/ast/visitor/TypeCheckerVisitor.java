@@ -1,7 +1,9 @@
 package io.github.thugborean.ast.visitor;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -17,7 +19,7 @@ import io.github.thugborean.vm.VM;
 import io.github.thugborean.vm.symbol.*;
 
 // TODO: Fix variables being able to use themselves upon declaration, fix double casting inside boolean expressions, fix better context and resolved types, fix return checker for typechecker
-// fix function calls into expressions, fix functions 
+// fix function calls into expressions, fix function arguments, fix bettee err messages, fix line count
 public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     // Create the logger and give it the class name
     private static final Logger logger = LoggingManager.getLogger(TypeCheckerVisitor.class);
@@ -91,7 +93,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
             if(statement instanceof NodeFunctionDeclaration) {
                 NodeFunctionDeclaration functionDeclaration = (NodeFunctionDeclaration)statement;
                 // We only need the identifier and the return type for now
-                vm.functionPool.declareFunction(functionDeclaration.identifier, new Function(functionDeclaration.returnType, null, null, null));
+                vm.functionPool.declareFunction(functionDeclaration.identifier, new Function(functionDeclaration.returnType, functionDeclaration.parameters, functionDeclaration.modifiers, null));
             }
         }
     } 
@@ -315,9 +317,11 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodePrintStatement(NodePrintStatement node) {
         logger.info("Checking print-statement...");
+        contextStack.offerLast(ValType.STRING);
         // Checks if the value can be printed
         node.printable.accept(this);
         logger.info("Print-statement has passed");
+        contextStack.pollLast();
         return null;
     }
 
@@ -328,8 +332,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         try {
             for(NodeStatement statement : node.statements) statement.accept(this);
         } finally {
-            vm.exitScope();
             logger.info("Exiting scope, level: " + Environment.globalScopeDepth);
+            vm.exitScope();
         }
         return null;
     }
@@ -341,6 +345,8 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     @Override
     public ValType visitNodeFunctionDeclaration(NodeFunctionDeclaration node) {
         vm.enterScope();
+        logger.info("Entering scope, level: " + Environment.globalScopeDepth);
+        initializeMockArguments(node.parameters); // ?
         currentFunction = node;
         try{
             for(NodeStatement statement : node.contents.statements) {
@@ -355,6 +361,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
         }
         // If all passes then add the the body to the function, this is inneficient but will do for now
         vm.functionPool.declareFunctionBody(node.identifier, new Function(node.returnType, node.parameters, node.modifiers, node.contents));
+        logger.info("Exiting scope, level: " + Environment.globalScopeDepth);
         vm.exitScope();
         return null;
     }
@@ -368,7 +375,7 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
                 logger.severe("No expression after return-statement!");
                 throw new RuntimeException("No expression after return-statement!");
             } else node.returnType = ValType.VOID;
-        } else node.returnType = node.returnValue.accept(this);
+        } else node.returnType = node.returnValue.accept(this); // return value is null for some reason
 
         if(node.returnType != currentFunction.returnType) {
             logger.severe(String.format("Function does not have compatible return types %s != %s", node.returnType, currentFunction.returnType));
@@ -410,6 +417,47 @@ public class TypeCheckerVisitor implements ASTVisitor<ValType> {
     // WIP
     @Override
     public ValType visitNodeFunctionCall(NodeFunctionCall node) {
-        return vm.functionPool.getFunction(node.identifier).returnType;
+        Function fn = vm.functionPool.getFunction(node.identifier);
+        checkFunctionCallArguments(node);
+        if(fn.returnType != ValType.VOID)
+            return vm.functionPool.getFunction(node.identifier).returnType;
+        else return ValType.VOID;
+    }
+
+        // This function is total dogwater
+    private void initializeMockArguments(Set<Param> params) {
+        List<Param> mockArguments = new ArrayList<>(params);
+        // Create new variables in the current fn env with the same type and value as the args passed in
+        for(int i = 0; i < mockArguments.size(); i++) {
+            String identifier = mockArguments.get(i).identifier();
+            ValType type = mockArguments.get(i).type();
+            vm.getCurrentEnv().declareVariable(identifier, new Variable(type, null));
+        }
+
+    }
+
+    private void checkFunctionCallArguments(NodeFunctionCall node) {
+        Function fn = vm.functionPool.getFunction(node.identifier);
+        List<NodeExpression> args = node.arguments;
+        List<Param> params = new ArrayList<>(fn.parameters); // Converting the set to a list
+        int nOfArgs = args.size();
+        int nOfParams = params.size();
+
+        // Check if the number of arguments are the same as the number of parameters for the function
+        if(nOfArgs != nOfParams) {
+            logger.severe(String.format("Invalid number of arguments for function %s, args: %s params %s!", node.identifier, args, params));
+            throw new RuntimeException((String.format("Invalid number of arguments for function %s, args: %s params %s!", node.identifier, args, params)));
+        }
+
+        // Check if the arguments are compatible with the parameters of the function
+        for(int i = 0; i < nOfArgs; i++) {
+            ValType argType = args.get(i).accept(this); // Get the type of the arg
+            ValType paramType = params.get(i).type(); // Get the type of the param
+
+            if(argType != paramType) {
+                logger.severe(String.format("Invalid type of argument %s for parameter %s", args.get(i), params.get(i).identifier()));
+                throw new RuntimeException(String.format("Invalid type of argument %s for parameter %s", args.get(i), params.get(i).identifier()));
+            }
+        }
     }
 }

@@ -1,8 +1,11 @@
-num target = 4;
-num result = target % 2;
+fn main() -> void {
+    num target = 4;
+    num result = target % 2;
 
-if(result == 0) {
-    print("The number " + target + " is even!");
-} else {
-    print("The number " + target + " is odd!);
+    if(result == 0) {
+        print("The number " + target + " is even!");
+    } else {
+        print("The number " + target + " is odd!);
+    }
 }
+ THIS DOESNT WORK

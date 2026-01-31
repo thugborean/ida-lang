@@ -1,5 +1,8 @@
 package io.github.thugborean.ast.visitor;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import io.github.thugborean.ast.node.Program;
@@ -68,7 +71,7 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
                             (right.getType() == ValType.NUMBER ? right.asNumber() : right.asDouble()));
                 }
                 case Assign: {
-                    logger.info(String.format("Assigning %s to %s", identifier, right));
+                    logger.info(String.format("Assigning %s to %s", right, identifier));
                     vm.getCurrentEnv().assignVariable(identifier, right);
                     return right;
                 }
@@ -250,8 +253,8 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
         try {
             for(NodeStatement statement : node.statements) statement.accept(this);
         } finally {
-            vm.exitScope();
             logger.info("Exiting scope, level: " + Environment.globalScopeDepth);
+            vm.exitScope();
         }
         return null;
     }
@@ -322,8 +325,11 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
 
     @Override
     public Value visitNodeFunctionCall(NodeFunctionCall node) {
+        logger.info("Entering function called " + node.identifier);
         vm.enterScope();
+        logger.info("Entering scope, level: " + Environment.globalScopeDepth);
         Function fn = vm.functionPool.getFunction(node.identifier);
+        initializeArguments(node.arguments, fn.parameters);
         for(NodeStatement statement : fn.contents.statements) {
             if(statement instanceof NodeReturnStatement) {
                 NodeReturnStatement returnStatement = (NodeReturnStatement)statement;
@@ -331,7 +337,23 @@ public class InterpreterVisitor implements ASTVisitor<Value> {
             }
             statement.accept(this);
         }
+        logger.info("Exiting function called: " + node.identifier);
+        logger.info("Exiting scope, level: " + Environment.globalScopeDepth);
         vm.exitScope();
         return null;
+    }
+
+    // This function is total dogwater
+    private void initializeArguments(List<NodeExpression> args, Set<Param> fnParams) {
+        List<Param> params = new ArrayList<>(fnParams);
+
+        // Create new variables in the current fn env with the same type and value as the args passed in
+        for(int i = 0; i < args.size(); i++) {
+            String identifier = params.get(i).identifier();
+            ValType type = params.get(i).type();
+            NodeExpression expr = args.get(i);
+            vm.getCurrentEnv().declareVariable(identifier, new Variable(type, expr.accept(this)));
+        }
+
     }
 }
